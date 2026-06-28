@@ -4,7 +4,11 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Product } from '@/lib/types'
 
-export default function OrderForm({ products, userId }: { products: Product[], userId: string }) {
+export default function OrderForm({ products, userId, orderDate }: { 
+  products: Product[], 
+  userId: string,
+  orderDate: string 
+}) {
   const [selectedProduct, setSelectedProduct] = useState(products[0]?.id || '')
   const [quantity, setQuantity] = useState(1)
   const [notes, setNotes] = useState('')
@@ -12,7 +16,6 @@ export default function OrderForm({ products, userId }: { products: Product[], u
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
   const selected = products.find(p => p.id === selectedProduct)
 
   async function handleOrder() {
@@ -21,13 +24,13 @@ export default function OrderForm({ products, userId }: { products: Product[], u
     const supabase = createClient()
 
     const { error } = await supabase.from('orders').insert({
-      user_id: userId,
-      product_id: selectedProduct,
-      quantity,
-      date: today,
-      notes: notes || null,
-      status: 'pending',
-    })
+  user_id: userId,
+  product_id: selectedProduct,
+  quantity,
+  date: orderDate,  // ← was: today
+  notes: notes || null,
+  status: 'pending',
+})
 
     if (error) {
       setError(error.message)

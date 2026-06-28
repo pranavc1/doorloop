@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AddProductForm from './AddProductForm'
 import SignOutButton from '@/components/SignOutButton'
+import ShareButton from '@/components/ShareButton'
+import CutoffEditor from '@/components/CutoffEditor'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -26,6 +28,13 @@ export default async function AdminPage() {
     .select('*, users(name, flat_number, building), products(name, unit)')
     .order('created_at', { ascending: false })
     .limit(50)
+
+  const { data: settings } = await supabase
+    .from('settings')
+    .select('*')
+    .eq('id', 'global')
+    .single()
+
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
@@ -60,6 +69,14 @@ export default async function AdminPage() {
         </section>
 
         <section>
+  <h2 className="text-lg font-bold text-slate-800 mb-3">Delivery settings</h2>
+  <CutoffEditor
+    currentHour={settings?.cutoff_hour ?? 5}
+    currentMinute={settings?.cutoff_minute ?? 0}
+  />
+</section>
+
+        <section>
           <h2 className="text-lg font-bold text-slate-800 mb-3">Recent Orders</h2>
           <div className="space-y-2">
             {orders?.length === 0 && (
@@ -86,6 +103,10 @@ export default async function AdminPage() {
             ))}
           </div>
         </section>
+        <section>
+  <h2 className="text-lg font-bold text-slate-800 mb-3">Invite neighbours</h2>
+  <ShareButton role="admin"/>
+</section>
       </div>
     </div>
   )

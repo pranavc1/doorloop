@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import OrderForm from './OrderForm'
 import SignOutButton from '@/components/SignOutButton'
+import ShareButton from '@/components/ShareButton'
 
 export default async function CustomerPage() {
   const supabase = await createClient()
@@ -16,19 +17,42 @@ export default async function CustomerPage() {
 
   if (!profile || !profile.name) redirect('/onboarding')
 
+  const { data: settings } = await supabase
+    .from('settings')
+    .select('*')
+    .eq('id', 'global')
+    .single()
+
   const { data: products } = await supabase
     .from('products')
     .select('*')
     .eq('is_active', true)
     .order('created_at', { ascending: true })
 
+
   const today = new Date().toISOString().split('T')[0]
 
+  const now = new Date()
+    const istOffset = 5.5 * 60 * 60 * 1000
+    const istNow = new Date(now.getTime() + istOffset)
+
+    const cutoffHour = settings?.cutoff_hour ?? 5
+    const cutoffMinute = settings?.cutoff_minute ?? 0
+
+    const isPastCutoff =
+    istNow.getUTCHours() > cutoffHour ||
+    (istNow.getUTCHours() === cutoffHour && istNow.getUTCMinutes() >= cutoffMinute)
+
+    // Order date: before cutoff = today, after cutoff = tomorrow
+    const orderDate = isPastCutoff
+    ? new Date(istNow.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    : today
+
   const { data: todayOrders } = await supabase
-    .from('orders')
-    .select('*, products(name, unit)')
-    .eq('user_id', user.id)
-    .eq('date', today)
+  .from('orders')
+  .select('*, products(name, unit)')
+  .eq('user_id', user.id)
+  .eq('date', orderDate)
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
@@ -48,7 +72,9 @@ export default async function CustomerPage() {
 
         {/* Today's Orders */}
         <section>
-          <h2 className="text-lg font-bold text-slate-800 mb-3">Today's orders</h2>
+         <h2 className="text-lg font-bold text-slate-800 mb-3">
+  {isPastCutoff ? "Tomorrow's orders" : "Today's orders"}
+</h2>
           {todayOrders?.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
               <p className="text-slate-400 text-sm">No orders placed for today yet</p>
@@ -76,15 +102,22 @@ export default async function CustomerPage() {
 
         {/* Place Order */}
         <section>
-          <h2 className="text-lg font-bold text-slate-800 mb-3">Place an order</h2>
-          {products && products.length > 0 ? (
-            <OrderForm products={products} userId={user.id} />
-          ) : (
-            <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
-              <p className="text-slate-400 text-sm">No products available yet</p>
-            </div>
-          )}
-        </section>
+  <h2 className="text-lg font-bold text-slate-800 mb-3">
+    {isPastCutoff ? "Place order for tomorrow" : "Place an order for today"}
+  </h2>
+  {products && products.length > 0 ? (
+    <OrderForm products={products} userId={user.id} orderDate={orderDate} />
+  ) : (
+    <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
+      <p className="text-slate-400 text-sm">No products available yet</p>
+    </div>
+  )}
+</section>
+
+        <section>
+  <h2 className="text-lg font-bold text-slate-800 mb-3">Invite neighbours</h2>
+  <ShareButton role="customer" />
+</section>
 
       </div>
     </div>
