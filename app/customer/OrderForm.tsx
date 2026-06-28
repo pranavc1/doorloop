@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Product } from '@/lib/types'
 
@@ -18,30 +18,81 @@ export default function OrderForm({ products, userId, orderDate }: {
 
   const selected = products.find(p => p.id === selectedProduct)
 
-  async function handleOrder() {
-    setLoading(true)
-    setError('')
-    const supabase = createClient()
+  const [isEditing, setIsEditing] = useState(false)
 
-    const { error } = await supabase.from('orders').insert({
-  user_id: userId,
-  product_id: selectedProduct,
-  quantity,
-  date: orderDate,  // ← was: today
-  notes: notes || null,
-  status: 'pending',
-})
+  useEffect(() => {
+  async function checkExisting() {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('orders')
+      .select('id, quantity, notes')
+      .eq('user_id', userId)
+      .eq('product_id', selectedProduct)
+      .eq('date', orderDate)
+      .single()
+
+    if (data) {
+      setIsEditing(true)
+      setQuantity(data.quantity)
+      setNotes(data.notes || '')
+    } else {
+      setIsEditing(false)
+      setQuantity(1)
+      setNotes('')
+    }
+  }
+  checkExisting()
+}, [selectedProduct, orderDate])
+
+  async function handleOrder() {
+  setLoading(true)
+  setError('')
+  const supabase = createClient()
+
+  // Check if order already exists for this product+date
+  const { data: existing } = await supabase
+    .from('orders')
+    .select('id, quantity')
+    .eq('user_id', userId)
+    .eq('product_id', selectedProduct)
+    .eq('date', orderDate)
+    .single()
+
+  if (existing) {
+    // Update existing order
+    const { error } = await supabase
+      .from('orders')
+      .update({ quantity, notes: notes || null })
+      .eq('id', existing.id)
 
     if (error) {
       setError(error.message)
     } else {
       setSuccess(true)
-      setNotes('')
-      setQuantity(1)
       setTimeout(() => { setSuccess(false); window.location.reload() }, 1500)
     }
-    setLoading(false)
+  } else {
+    // Insert new order
+    const { error } = await supabase
+      .from('orders')
+      .insert({
+        user_id: userId,
+        product_id: selectedProduct,
+        quantity,
+        date: orderDate,
+        notes: notes || null,
+        status: 'pending',
+      })
+
+    if (error) {
+      setError(error.message)
+    } else {
+      setSuccess(true)
+      setTimeout(() => { setSuccess(false); window.location.reload() }, 1500)
+    }
   }
+  setLoading(false)
+}
 
   return (
     <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-4">
@@ -113,12 +164,12 @@ export default function OrderForm({ products, userId, orderDate }: {
       )}
 
       <button
-        onClick={handleOrder}
-        disabled={loading || success}
-        className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-base disabled:opacity-50 active:scale-95 transition-transform"
-      >
-        {success ? '✓ Order placed!' : loading ? 'Placing order...' : 'Place order'}
-      </button>
+  onClick={handleOrder}
+  disabled={loading || success}
+  className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-base disabled:opacity-50 active:scale-95 transition-transform"
+>
+  {success ? '✓ Done!' : loading ? 'Saving...' : isEditing ? 'Update order' : 'Place order'}
+</button>
     </div>
   )
 }

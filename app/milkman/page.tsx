@@ -5,7 +5,6 @@ import SignOutButton from '@/components/SignOutButton'
 import ShareButton from '@/components/ShareButton'
 import CutoffEditor from '@/components/CutoffEditor'
 
-
 export default async function MilkmanPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -20,18 +19,20 @@ export default async function MilkmanPage() {
   if (!profile || profile.role !== 'milkman') redirect('/')
 
   const today = new Date().toISOString().split('T')[0]
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   const { data: orders } = await supabase
     .from('orders')
     .select('*, users(name, flat_number, building), products(name, unit)')
-    .eq('date', today)
+    .in('date', [today, tomorrow])
+    .order('date', { ascending: true })
     .order('created_at', { ascending: true })
 
   const { data: settings } = await supabase
-  .from('settings')
-  .select('*')
-  .eq('id', 'global')
-  .single()
+    .from('settings')
+    .select('*')
+    .eq('id', 'global')
+    .single()
 
   const pending = orders?.filter(o => o.status === 'pending') || []
   const delivered = orders?.filter(o => o.status === 'delivered') || []
@@ -39,15 +40,16 @@ export default async function MilkmanPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
       <div className="bg-blue-600 px-6 pt-12 pb-6">
-  <div className="flex justify-between items-start">
-    <div>
-      <p className="text-blue-200 text-sm">Milkman</p>
-      <h1 className="text-white text-2xl font-bold">Today's deliveries</h1>
-      <p className="text-blue-200 text-sm mt-1">{today}</p>
-    </div>
-    <SignOutButton />
-  </div>
-</div>
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-blue-200 text-sm">Milkman</p>
+            <h1 className="text-white text-2xl font-bold">Deliveries</h1>
+            <p className="text-blue-200 text-sm mt-1">Today & tomorrow</p>
+            <p className="text-blue-200 text-sm mt-1">{today} & {tomorrow}</p>
+          </div>
+          <SignOutButton />
+        </div>
+      </div>
 
       <div className="px-6 mt-6 space-y-6">
 
@@ -76,6 +78,9 @@ export default async function MilkmanPage() {
                 <div key={o.id} className="bg-white rounded-xl border border-slate-100 px-4 py-4">
                   <div className="flex justify-between items-start mb-3">
                     <div>
+                      <p className="text-xs font-medium mb-1">
+                        {o.date === today ? '📅 Today' : '📅 Tomorrow'}
+                      </p>
                       <p className="font-semibold text-slate-800">{o.users?.name}</p>
                       <p className="text-sm text-slate-400">{o.users?.flat_number}, {o.users?.building}</p>
                     </div>
@@ -106,6 +111,9 @@ export default async function MilkmanPage() {
               {delivered.map((o: any) => (
                 <div key={o.id} className="bg-white rounded-xl border border-slate-100 px-4 py-3 flex justify-between items-center opacity-60">
                   <div>
+                    <p className="text-xs text-slate-400 mb-1">
+                      {o.date === today ? '📅 Today' : '📅 Tomorrow'}
+                    </p>
                     <p className="font-medium text-slate-700">{o.users?.name}</p>
                     <p className="text-sm text-slate-400">{o.users?.flat_number} · {o.products?.name} × {o.quantity}</p>
                   </div>
@@ -120,22 +128,24 @@ export default async function MilkmanPage() {
 
         {orders?.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-100 px-4 py-10 text-center">
-            <p className="text-slate-400">No orders for today yet</p>
+            <p className="text-slate-400">No orders yet</p>
           </div>
         )}
 
+        {/* Cutoff time */}
         <section>
-  <h2 className="text-lg font-bold text-slate-800 mb-3">Cutoff time</h2>
-  <CutoffEditor
-    currentHour={settings?.cutoff_hour ?? 5}
-    currentMinute={settings?.cutoff_minute ?? 0}
-  />
-</section>
+          <h2 className="text-lg font-bold text-slate-800 mb-3">Cutoff time</h2>
+          <CutoffEditor
+            currentHour={settings?.cutoff_hour ?? 5}
+            currentMinute={settings?.cutoff_minute ?? 0}
+          />
+        </section>
 
+        {/* Refer a milkman */}
         <section>
-  <h2 className="text-lg font-bold text-slate-800 mb-3">Refer a milkman</h2>
-  <ShareButton role="milkman" />
-</section>
+          <h2 className="text-lg font-bold text-slate-800 mb-3">Refer a milkman</h2>
+          <ShareButton role="milkman" />
+        </section>
 
       </div>
     </div>
