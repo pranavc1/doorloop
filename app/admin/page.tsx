@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import AddProductForm from './AddProductForm'
 import SignOutButton from '@/components/SignOutButton'
 import ShareButton from '@/components/ShareButton'
-import CutoffEditor from '@/components/CutOffEditor'
+import CutoffEditor from '@/components/CutoffEditor'
 import OrderStatusButton from './OrderStatusButton'
 
 export default async function AdminPage() {

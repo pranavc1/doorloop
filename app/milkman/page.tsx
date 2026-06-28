@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import DeliverButton from './DeliverButton'
 import SignOutButton from '@/components/SignOutButton'
 import ShareButton from '@/components/ShareButton'
-import CutoffEditor from '@/components/CutOffEditor'
+import CutoffEditor from '@/components/CutoffEditor'
 
 
 export default async function MilkmanPage() {
