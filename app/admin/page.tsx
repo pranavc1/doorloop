@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import AddProductForm from './AddProductForm'
 import SignOutButton from '@/components/SignOutButton'
 import ShareButton from '@/components/ShareButton'
-import CutoffEditor from '@/components/CutoffEditor'
+import CutoffEditor from '@/components/CutOffEditor'
+import OrderStatusButton from './OrderStatusButton'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -83,24 +84,28 @@ export default async function AdminPage() {
               <p className="text-slate-400 text-sm">No orders yet.</p>
             )}
             {(orders as any[])?.map((o) => (
-              <div key={o.id} className="bg-white rounded-xl px-4 py-3 border border-slate-100">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-slate-800">{o.users?.name}</p>
-                    <p className="text-sm text-slate-400">{o.users?.flat_number}, {o.users?.building}</p>
-                    <p className="text-sm text-slate-600 mt-1">{o.products?.name} × {o.quantity}</p>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    o.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                    o.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {o.status}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 mt-1">{o.date}</p>
-              </div>
-            ))}
+  <div key={o.id} className="bg-white rounded-xl px-4 py-3 border border-slate-100">
+    <div className="flex justify-between items-start">
+      <div>
+        <p className="font-medium text-slate-800">{o.users?.name}</p>
+        <p className="text-sm text-slate-400">{o.users?.flat_number}, {o.users?.building}</p>
+        <p className="text-sm text-slate-600 mt-1">{o.products?.name} × {o.quantity}</p>
+        {o.notes && (
+          <p className="text-xs text-blue-600 mt-1">📝 {o.notes}</p>
+        )}
+      </div>
+      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+        o.status === 'delivered' ? 'bg-green-100 text-green-700' :
+        o.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+        'bg-yellow-100 text-yellow-700'
+      }`}>
+        {o.status}
+      </span>
+    </div>
+    <p className="text-xs text-slate-400 mt-1">{o.date}</p>
+    <OrderStatusButton orderId={o.id} currentStatus={o.status} />
+  </div>
+))}
           </div>
         </section>
         <section>
