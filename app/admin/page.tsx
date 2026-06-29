@@ -5,6 +5,7 @@ import SignOutButton from '@/components/SignOutButton'
 import ShareButton from '@/components/ShareButton'
 import CutoffEditor from '@/components/CutoffEditor'
 import OrderStatusButton from './OrderStatusButton'
+import BuildingManager from './BuildingManager'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -35,6 +36,11 @@ export default async function AdminPage() {
     .select('*')
     .eq('id', 'global')
     .single()
+
+  const { data: buildings } = await supabase
+    .from('buildings')
+    .select('*')
+    .order('name', { ascending: true })
 
 
   return (
@@ -81,6 +87,10 @@ export default async function AdminPage() {
 ))}
           </div>
         </section>
+        <section>
+  <h2 className="text-lg font-bold text-slate-800 mb-3">Buildings</h2>
+  <BuildingManager buildings={buildings || []} />
+</section>
 
         <section>
   <h2 className="text-lg font-bold text-slate-800 mb-3">Delivery settings</h2>

@@ -53,7 +53,6 @@ export default async function MilkmanPage() {
     flat: string
     building: string
     date: string
-    status: string
     orders: any[]
   }> = {}
 
@@ -66,20 +65,27 @@ export default async function MilkmanPage() {
         flat: o.users?.flat_number || '',
         building: o.users?.building || '',
         date: o.date,
-        status: o.status,
         orders: [],
       }
     }
     grouped[key].orders.push(o)
   }
 
-  // Sort by flat number
-  const groupedList = Object.values(grouped).sort((a, b) =>
-    a.flat.localeCompare(b.flat, undefined, { numeric: true })
-  )
+  // Group by building, then sort flats within each building
+  const byBuilding: Record<string, typeof grouped[string][]> = {}
+  for (const g of Object.values(grouped)) {
+    if (!byBuilding[g.building]) byBuilding[g.building] = []
+    byBuilding[g.building].push(g)
+  }
+  for (const building in byBuilding) {
+    byBuilding[building].sort((a, b) =>
+      a.flat.localeCompare(b.flat, undefined, { numeric: true })
+    )
+  }
 
-  const totalOrders = groupedList.length
-  const deliveredCount = groupedList.filter(g =>
+  const allGrouped = Object.values(grouped)
+  const totalOrders = allGrouped.length
+  const deliveredCount = allGrouped.filter(g =>
     g.orders.every(o => o.status === 'delivered')
   ).length
 
@@ -108,7 +114,6 @@ export default async function MilkmanPage() {
           <SignOutButton />
         </div>
 
-        {/* Progress bar */}
         {totalOrders > 0 && (
           <div className="mt-4">
             <div className="flex justify-between text-sm mb-1">
@@ -129,7 +134,7 @@ export default async function MilkmanPage() {
 
       <div className="px-6 mt-6 space-y-6">
 
-        {/* Pickup summary — how much milk to bring */}
+        {/* Pickup summary */}
         {Object.keys(productTotals).length > 0 && (
           <section>
             <h2 className="text-base font-bold text-slate-700 mb-2">📦 Bring today</h2>
@@ -144,22 +149,31 @@ export default async function MilkmanPage() {
           </section>
         )}
 
-        {/* Delivery list */}
+        {/* Delivery list grouped by building */}
         <section>
-          <h2 className="text-base font-bold text-slate-700 mb-2">🏠 Delivery list</h2>
-          {groupedList.length === 0 ? (
+          <h2 className="text-base font-bold text-slate-700 mb-3">🏠 Delivery list</h2>
+          {Object.keys(byBuilding).length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-100 px-4 py-10 text-center">
               <p className="text-slate-400">No orders yet</p>
             </div>
           ) : (
-            <MilkmanDeliveryList groupedList={groupedList} today={today} />
+            <div className="space-y-6">
+              {Object.entries(byBuilding).map(([building, customers]) => (
+                <div key={building}>
+                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-2">
+                    📍 {building}
+                  </p>
+                  <MilkmanDeliveryList groupedList={customers} today={today} />
+                </div>
+              ))}
+            </div>
           )}
         </section>
 
-        {/* My products */}
+        {/* My offerings */}
         <section>
           <h2 className="text-base font-bold text-slate-700 mb-2">🥛 My offerings</h2>
-          <p className="text-sm text-slate-400 mb-3">Toggle which products you deliver</p>
+          <p className="text-sm text-slate-400 mb-3">Toggle which products you deliver. Changes apply from the next order onwards.</p>
           <MilkmanProductToggle
             allProducts={allProducts || []}
             milkmanProducts={milkmanProducts || []}

@@ -1,20 +1,42 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+
+type Building = {
+  id: string
+  name: string
+  area: string | null
+}
 
 export default function OnboardingPage() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [flat, setFlat] = useState('')
-  const [building, setBuilding] = useState('')
+  const [buildingId, setBuildingId] = useState('')
+  const [buildings, setBuildings] = useState<Building[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const supabase = createClient()
 
+  useEffect(() => {
+    async function fetchBuildings() {
+      const { data } = await supabase
+        .from('buildings')
+        .select('id, name, area')
+        .eq('is_active', true)
+        .order('name', { ascending: true })
+      if (data) {
+        setBuildings(data)
+        if (data.length > 0) setBuildingId(data[0].id)
+      }
+    }
+    fetchBuildings()
+  }, [])
+
   async function handleSubmit() {
-    if (!name || !phone || !flat || !building) {
+    if (!name || !phone || !flat || !buildingId) {
       setError('Please fill in all fields')
       return
     }
@@ -23,11 +45,9 @@ export default function OnboardingPage() {
     setError('')
 
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { window.location.href = '/login'; return }
 
-    if (!user) {
-      window.location.href = '/login'
-      return
-    }
+    const selectedBuilding = buildings.find(b => b.id === buildingId)
 
     const { error } = await supabase.from('users').upsert({
       id: user.id,
@@ -35,22 +55,17 @@ export default function OnboardingPage() {
       name,
       phone,
       flat_number: flat,
-      building,
+      building: selectedBuilding?.name || '',
+      building_id: buildingId,
       role: 'customer',
     })
 
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-
+    if (error) { setError(error.message); setLoading(false); return }
     window.location.href = '/'
   }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center px-6">
-      {/* Header */}
       <div className="mb-8 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
           <span className="text-white text-2xl">🔁</span>
@@ -59,7 +74,6 @@ export default function OnboardingPage() {
         <p className="text-slate-500 mt-1">Just a few details to get started</p>
       </div>
 
-      {/* Form */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
 
         <div>
@@ -85,6 +99,27 @@ export default function OnboardingPage() {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-slate-600 mb-1">Building</label>
+          {buildings.length === 0 ? (
+            <div className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-400 text-base">
+              Loading buildings...
+            </div>
+          ) : (
+            <select
+              value={buildingId}
+              onChange={e => setBuildingId(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+            >
+              {buildings.map(b => (
+                <option key={b.id} value={b.id}>
+                  {b.name}{b.area ? ` — ${b.area}` : ''}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-slate-600 mb-1">Flat / House number</label>
           <input
             type="text"
@@ -95,27 +130,14 @@ export default function OnboardingPage() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-600 mb-1">Building / Society name</label>
-          <input
-            type="text"
-            value={building}
-            onChange={e => setBuilding(e.target.value)}
-            placeholder="Sunshine Apartments"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-          />
-        </div>
-
         {error && (
-          <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">
-            {error}
-          </div>
+          <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">{error}</div>
         )}
 
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-base disabled:opacity-50 active:scale-95 transition-transform mt-2"
+          className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-base disabled:opacity-50 active:scale-95 transition-transform"
         >
           {loading ? 'Saving...' : 'Continue →'}
         </button>
