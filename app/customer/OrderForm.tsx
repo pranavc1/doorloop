@@ -102,26 +102,39 @@ export default function OrderForm({ products, userId, orderDate }: {
         <label className="block text-sm font-medium text-slate-600 mb-2">Choose product</label>
         <div className="space-y-2">
           {products.map(p => (
-            <button
-              key={p.id}
-              onClick={() => setSelectedProduct(p.id)}
-              className={`w-full flex justify-between items-center px-4 py-3 rounded-xl border-2 transition-colors ${
-                selectedProduct === p.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-slate-100 bg-slate-50'
-              }`}
-            >
-              <div className="text-left">
-                <p className={`font-medium ${selectedProduct === p.id ? 'text-blue-700' : 'text-slate-700'}`}>
-                  {p.name}
-                </p>
-                <p className="text-sm text-slate-400">{p.unit}</p>
-              </div>
-              <p className={`font-semibold ${selectedProduct === p.id ? 'text-blue-600' : 'text-slate-500'}`}>
-                ₹{p.price}
-              </p>
-            </button>
-          ))}
+  <button
+    key={p.id}
+    onClick={() => setSelectedProduct(p.id)}
+    className={`w-full flex justify-between items-center px-4 py-3 rounded-xl border-2 transition-colors ${
+      selectedProduct === p.id
+        ? 'border-blue-500 bg-blue-50'
+        : 'border-slate-100 bg-slate-50'
+    }`}
+  >
+    <div className="flex items-center gap-3 text-left">
+      {p.photo_url ? (
+        <img
+          src={p.photo_url}
+          alt={p.name}
+          className="w-10 h-10 rounded-lg object-cover"
+        />
+      ) : (
+        <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center text-lg">
+          🥛
+        </div>
+      )}
+      <div>
+        <p className={`font-medium ${selectedProduct === p.id ? 'text-blue-700' : 'text-slate-700'}`}>
+          {p.name}
+        </p>
+        <p className="text-sm text-slate-400">{p.unit}</p>
+      </div>
+    </div>
+    <p className={`font-semibold ${selectedProduct === p.id ? 'text-blue-600' : 'text-slate-500'}`}>
+      ₹{p.price}
+    </p>
+  </button>
+))}
         </div>
       </div>
 

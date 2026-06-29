@@ -16,6 +16,7 @@ export type Product = {
   price: number
   unit: string
   is_active: boolean
+  photo_url: string | null
 }
 
 export type Order = {

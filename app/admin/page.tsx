@@ -58,14 +58,27 @@ export default async function AdminPage() {
               <p className="text-slate-400 text-sm">No products yet. Add one above.</p>
             )}
             {products?.map(p => (
-              <div key={p.id} className="bg-white rounded-xl px-4 py-3 flex justify-between items-center border border-slate-100">
-                <div>
-                  <p className="font-medium text-slate-800">{p.name}</p>
-                  <p className="text-sm text-slate-400">{p.unit}</p>
-                </div>
-                <p className="font-semibold text-blue-600">₹{p.price}</p>
-              </div>
-            ))}
+  <div key={p.id} className="bg-white rounded-xl px-4 py-3 flex justify-between items-center border border-slate-100">
+    <div className="flex items-center gap-3">
+      {p.photo_url ? (
+        <img
+          src={p.photo_url}
+          alt={p.name}
+          className="w-12 h-12 rounded-xl object-cover border border-slate-100"
+        />
+      ) : (
+        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
+          🥛
+        </div>
+      )}
+      <div>
+        <p className="font-medium text-slate-800">{p.name}</p>
+        <p className="text-sm text-slate-400">{p.unit}</p>
+      </div>
+    </div>
+    <p className="font-semibold text-blue-600">₹{p.price}</p>
+  </div>
+))}
           </div>
         </section>
 
