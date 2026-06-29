@@ -82,20 +82,23 @@ export default async function CustomerPage() {
           ) : (
             <div className="space-y-2">
               {todayOrders?.map((o: any) => (
-                <div key={o.id} className="bg-white rounded-xl px-4 py-3 border border-slate-100 flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-slate-800">{o.products?.name}</p>
-                    <p className="text-sm text-slate-400">{o.products?.unit} × {o.quantity}</p>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    o.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                    o.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {o.status}
-                  </span>
-                </div>
-              ))}
+  <div key={o.id} className="bg-white rounded-xl px-4 py-3 border border-slate-100 flex justify-between items-center">
+    <div>
+      <p className="font-medium text-slate-800">{o.products?.name}</p>
+      <p className="text-sm text-slate-400">{o.products?.unit} × {o.quantity}</p>
+      {o.notes && (
+        <p className="text-xs text-blue-600 mt-1">📝 {o.notes}</p>
+      )}
+    </div>
+    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+      o.status === 'delivered' ? 'bg-green-100 text-green-700' :
+      o.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+      'bg-yellow-100 text-yellow-700'
+    }`}>
+      {o.status}
+    </span>
+  </div>
+))}
             </div>
           )}
         </section>
