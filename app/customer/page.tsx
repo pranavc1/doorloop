@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import OrderForm from './OrderForm'
+import OrderSummaryCard from './OrderSummaryCard'
 import SignOutButton from '@/components/SignOutButton'
 import ShareButton from '@/components/ShareButton'
 
@@ -23,20 +24,16 @@ export default async function CustomerPage() {
     .eq('id', 'global')
     .single()
 
-  // Get all active products
   const { data: allProducts } = await supabase
     .from('products')
     .select('*')
     .eq('is_active', true)
     .order('created_at', { ascending: true })
 
-  // Get milkman product toggles
   const { data: milkmanProductSettings } = await supabase
     .from('milkman_products')
     .select('product_id, is_active')
 
-  // Filter: if milkman has explicitly disabled a product, hide it
-  // If no setting exists for a product, show it by default
   const disabledProductIds = new Set(
     (milkmanProductSettings || [])
       .filter(mp => !mp.is_active)
@@ -62,9 +59,15 @@ export default async function CustomerPage() {
 
   const { data: todayOrders } = await supabase
     .from('orders')
-    .select('*, products(name, unit)')
+    .select('*, products(name, unit, photo_url)')
     .eq('user_id', user.id)
     .eq('date', orderDate)
+    .neq('status', 'cancelled')
+
+  const orderedProductIds = new Set((todayOrders || []).map(o => o.product_id))
+  const availableToAdd = products.filter(p => !orderedProductIds.has(p.id))
+
+  const hasOrders = (todayOrders?.length || 0) > 0
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
@@ -81,49 +84,43 @@ export default async function CustomerPage() {
 
       <div className="px-6 mt-6 space-y-6">
 
-        {/* Orders */}
+        {/* Existing orders summary */}
         <section>
           <h2 className="text-lg font-bold text-slate-800 mb-3">
-            {isPastCutoff ? "Tomorrow's orders" : "Today's orders"}
+            {isPastCutoff ? "Your order for tomorrow" : "Your order for today"}
           </h2>
-          {todayOrders?.length === 0 ? (
+
+          {!hasOrders ? (
             <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
-              <p className="text-slate-400 text-sm">No orders placed yet</p>
+              <p className="text-slate-400 text-sm">You haven't ordered yet</p>
             </div>
           ) : (
             <div className="space-y-2">
               {todayOrders?.map((o: any) => (
-                <div key={o.id} className="bg-white rounded-xl px-4 py-3 border border-slate-100 flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-slate-800">{o.products?.name}</p>
-                    <p className="text-sm text-slate-400">{o.products?.unit} × {o.quantity}</p>
-                    {o.notes && (
-                      <p className="text-xs text-blue-600 mt-1">📝 {o.notes}</p>
-                    )}
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    o.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                    o.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {o.status}
-                  </span>
-                </div>
+                <OrderSummaryCard
+                  key={o.id}
+                  order={o}
+                  isPastCutoff={isPastCutoff}
+                />
               ))}
             </div>
           )}
         </section>
 
-        {/* Place order */}
+        {/* Add product */}
         <section>
           <h2 className="text-lg font-bold text-slate-800 mb-3">
-            {isPastCutoff ? "Place order for tomorrow" : "Place an order for today"}
+            {hasOrders ? 'Add another product' : (isPastCutoff ? 'Place order for tomorrow' : 'Place an order for today')}
           </h2>
-          {products.length > 0 ? (
-            <OrderForm products={products} userId={user.id} orderDate={orderDate} />
-          ) : (
+          {availableToAdd.length > 0 ? (
+            <OrderForm products={availableToAdd} userId={user.id} orderDate={orderDate} />
+          ) : products.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
               <p className="text-slate-400 text-sm">No products available right now</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
+              <p className="text-slate-400 text-sm">You've ordered everything available</p>
             </div>
           )}
         </section>
