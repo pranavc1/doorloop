@@ -4,28 +4,36 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Product } from '@/lib/types'
 
+const tileColors = ['#E1F5EE', '#FAECE7', '#FBEAF0', '#E6F1FB', '#FAEEDA', '#EEEDFE']
+
 export default function OrderForm({ products, userId, orderDate }: {
   products: Product[],
   userId: string,
   orderDate: string
 }) {
-  const [selectedProduct, setSelectedProduct] = useState(products[0]?.id || '')
+  const [activeProduct, setActiveProduct] = useState<Product | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  const selected = products.find(p => p.id === selectedProduct)
+  function openTile(p: Product) {
+    setActiveProduct(p)
+    setQuantity(1)
+    setNotes('')
+    setError('')
+  }
 
   async function handleOrder() {
+    if (!activeProduct) return
     setLoading(true)
     setError('')
     const supabase = createClient()
 
     const { error } = await supabase.from('orders').insert({
       user_id: userId,
-      product_id: selectedProduct,
+      product_id: activeProduct.id,
       quantity,
       date: orderDate,
       notes: notes || null,
@@ -39,89 +47,93 @@ export default function OrderForm({ products, userId, orderDate }: {
     }
 
     setSuccess(true)
-    setTimeout(() => { setSuccess(false); window.location.reload() }, 1200)
+    setTimeout(() => { setSuccess(false); window.location.reload() }, 1100)
   }
 
-  return (
-    <div className="bg-white rounded-2xl border border-[#EDEAE3] p-5 space-y-5">
-
-      <div>
-        <label className="block text-base font-semibold text-[#1C1917] mb-2.5">Choose product</label>
-        <div className="space-y-2.5">
-          {products.map(p => (
-            <button
-              key={p.id}
-              onClick={() => setSelectedProduct(p.id)}
-              className={`w-full flex justify-between items-center px-4 py-3.5 rounded-xl border-2 transition-colors ${
-                selectedProduct === p.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-[#EDEAE3] bg-[#FAFAF9]'
-              }`}
-            >
-              <div className="flex items-center gap-3 text-left">
-                {p.photo_url ? (
-                  <img src={p.photo_url} alt={p.name} className="w-11 h-11 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-11 h-11 rounded-lg bg-[#EDEAE3] flex items-center justify-center text-lg">🥛</div>
-                )}
-                <div>
-                  <p className={`font-semibold text-base ${selectedProduct === p.id ? 'text-blue-700' : 'text-[#1C1917]'}`}>
-                    {p.name}
-                  </p>
-                  <p className="text-sm text-[#78716C]">{p.unit}</p>
-                </div>
-              </div>
-              <p className={`font-bold text-base ${selectedProduct === p.id ? 'text-blue-600' : 'text-[#78716C]'}`}>
-                ₹{p.price}
-              </p>
-            </button>
-          ))}
+  // Expanded form for the selected tile
+  if (activeProduct) {
+    return (
+      <div className="bg-white rounded-2xl p-4 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center text-lg flex-shrink-0">
+            {activeProduct.photo_url ? (
+              <img src={activeProduct.photo_url} alt="" className="w-full h-full rounded-xl object-cover" />
+            ) : '🥛'}
+          </div>
+          <div>
+            <p className="font-medium text-[15px] text-[#2C2C2A]">{activeProduct.name}</p>
+            <p className="text-[12px] text-[#8a8578]">{activeProduct.unit} · ₹{activeProduct.price}</p>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <label className="block text-base font-semibold text-[#1C1917] mb-2.5">Quantity</label>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => setQuantity(q => Math.max(1, q - 1))}
-            className="w-14 h-14 rounded-xl bg-[#F5F4F0] text-[#1C1917] text-2xl font-bold active:scale-95 transition-transform"
+            className="w-12 h-12 rounded-xl bg-[#F5F2EA] text-[#2C2C2A] text-xl font-medium active:scale-95 transition-transform"
           >
             −
           </button>
-          <span className="text-2xl font-bold text-[#1C1917] w-10 text-center">{quantity}</span>
+          <span className="text-xl font-medium text-[#2C2C2A] w-8 text-center">{quantity}</span>
           <button
             onClick={() => setQuantity(q => q + 1)}
-            className="w-14 h-14 rounded-xl bg-[#F5F4F0] text-[#1C1917] text-2xl font-bold active:scale-95 transition-transform"
+            className="w-12 h-12 rounded-xl bg-[#F5F2EA] text-[#2C2C2A] text-xl font-medium active:scale-95 transition-transform"
           >
             +
           </button>
-          {selected && (
-            <p className="text-[#78716C] text-base ml-2">= ₹{(selected.price * quantity).toFixed(0)}</p>
-          )}
+          <p className="text-[#8a8578] text-[13px] ml-1">= ₹{(activeProduct.price * quantity).toFixed(0)}</p>
         </div>
-      </div>
 
-      <div>
-        <label className="block text-base font-semibold text-[#1C1917] mb-2">Notes (optional)</label>
         <input
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          placeholder="e.g. Leave at door"
-          className="w-full px-4 py-3.5 rounded-xl border border-[#EDEAE3] text-[#1C1917] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          placeholder="Any note? e.g. leave at door"
+          className="w-full px-4 py-3 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[14px]"
         />
+
+        {error && (
+          <div className="bg-red-50 text-red-700 text-[13px] px-4 py-3 rounded-xl">{error}</div>
+        )}
+
+        <div className="flex gap-2.5">
+          <button
+            onClick={() => setActiveProduct(null)}
+            className="flex-1 bg-[#F5F2EA] text-[#2C2C2A] py-3.5 rounded-xl font-medium text-[14px]"
+          >
+            Back
+          </button>
+          <button
+            onClick={handleOrder}
+            disabled={loading || success}
+            className="flex-1 bg-[#1E4D8C] text-white py-3.5 rounded-xl font-medium text-[14px] disabled:opacity-50 active:scale-95 transition-transform"
+          >
+            {success ? '✓ Ordered!' : loading ? 'Placing...' : 'Confirm order'}
+          </button>
+        </div>
       </div>
+    )
+  }
 
-      {error && (
-        <div className="bg-red-50 text-red-700 text-base px-4 py-3.5 rounded-xl">{error}</div>
-      )}
-
-      <button
-        onClick={handleOrder}
-        disabled={loading || success}
-        className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50 active:scale-95 transition-transform"
-      >
-        {success ? '✓ Order placed!' : loading ? 'Placing order...' : 'Place order'}
-      </button>
+  // Default — horizontal tile scroller
+  return (
+    <div className="flex gap-2.5 overflow-x-auto pb-1 px-1.5 -mx-1.5">
+      {products.map((p, i) => (
+        <button
+          key={p.id}
+          onClick={() => openTile(p)}
+          className="flex-shrink-0 w-[92px] bg-white rounded-2xl px-2.5 py-3 text-center active:scale-95 transition-transform"
+        >
+          <div
+            className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center text-lg overflow-hidden"
+            style={{ background: tileColors[i % tileColors.length] }}
+          >
+            {p.photo_url ? (
+              <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" />
+            ) : '🥛'}
+          </div>
+          <p className="text-[12px] font-medium text-[#2C2C2A] leading-tight">{p.name}</p>
+          <p className="text-[11px] text-[#8a8578] mt-0.5">₹{p.price}</p>
+        </button>
+      ))}
     </div>
   )
 }

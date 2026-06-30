@@ -68,66 +68,74 @@ export default async function CustomerPage() {
   const availableToAdd = products.filter(p => !orderedProductIds.has(p.id))
   const hasOrders = (todayOrders?.length || 0) > 0
 
+  const dayLabel = new Date(istNow).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })
+  const initial = profile.name.charAt(0).toUpperCase()
+
   return (
-    <div className="min-h-screen bg-[#FAFAF9] pb-12">
+    <div className="min-h-screen bg-[#FBF8F2] pb-12">
+
       {/* Header */}
-      <div className="bg-blue-600 px-6 pt-12 pb-7 rounded-b-3xl">
+      <div className="bg-[#1E4D8C] px-5 pt-11 pb-7">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-blue-100 text-base">Good morning 👋</p>
-            <h1 className="text-white text-3xl font-bold mt-0.5">{profile.name}</h1>
-            <p className="text-blue-100 text-base mt-1">{profile.flat_number}, {profile.building}</p>
+            <p className="text-[13px] text-white/65">{dayLabel}</p>
+            <h1 className="text-[26px] font-medium text-white mt-0.5">Hi {profile.name.split(' ')[0]} 👋</h1>
+            <p className="text-[13px] text-white/70 mt-1">{profile.flat_number}, {profile.building}</p>
           </div>
-          <SignOutButton />
+          <div className="flex flex-col items-end gap-2">
+            <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white text-sm">
+              {initial}
+            </div>
+            <SignOutButton />
+          </div>
         </div>
       </div>
 
-      <div className="px-5 mt-6 space-y-7">
+      <div className="px-3.5 mt-4 space-y-7">
 
-        {/* Existing orders summary */}
+        {/* Existing orders */}
         <section>
-          <h2 className="text-xl font-bold text-[#1C1917] mb-3 px-1">
-            {isPastCutoff ? "Your order for tomorrow" : "Your order for today"}
+          <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">
+            {isPastCutoff ? "Tomorrow's order" : "Today's order"}
           </h2>
 
           {!hasOrders ? (
-            <div className="bg-white rounded-2xl border border-[#EDEAE3] px-5 py-7 text-center">
-              <p className="text-[#78716C] text-base">You haven't ordered yet</p>
+            <div className="bg-white rounded-2xl px-5 py-8 text-center">
+              <p className="text-[#8a8578] text-[14px]">You haven't ordered yet</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {todayOrders?.map((o: any) => (
-                <OrderSummaryCard
-                  key={o.id}
-                  order={o}
-                  isPastCutoff={isPastCutoff}
-                />
+                <OrderSummaryCard key={o.id} order={o} isPastCutoff={isPastCutoff} />
               ))}
             </div>
           )}
         </section>
 
-        {/* Add product */}
+        {/* Add product — tile scroller */}
         <section>
-          <h2 className="text-xl font-bold text-[#1C1917] mb-3 px-1">
-            {hasOrders ? 'Add another product' : (isPastCutoff ? 'Place order for tomorrow' : 'Place an order for today')}
+          <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">
+            {hasOrders ? 'Add something else' : (isPastCutoff ? 'Order for tomorrow' : 'Order for today')}
           </h2>
           {availableToAdd.length > 0 ? (
             <OrderForm products={availableToAdd} userId={user.id} orderDate={orderDate} />
           ) : products.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-[#EDEAE3] px-5 py-7 text-center">
-              <p className="text-[#78716C] text-base">No products available right now</p>
+            <div className="bg-white rounded-2xl px-5 py-8 text-center">
+              <p className="text-[#8a8578] text-[14px]">No products available right now</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-[#EDEAE3] px-5 py-7 text-center">
-              <p className="text-[#78716C] text-base">You've ordered everything available</p>
+            <div className="bg-white rounded-2xl px-5 py-8 text-center">
+              <p className="text-[#8a8578] text-[14px]">You've ordered everything available</p>
             </div>
           )}
         </section>
 
         {/* Invite */}
-        <section>
-          <h2 className="text-xl font-bold text-[#1C1917] mb-3 px-1">Invite neighbours</h2>
+        <section className="px-1.5">
+          <button
+            onClick={undefined}
+            className="hidden"
+          />
           <ShareButton role="customer" />
         </section>
 

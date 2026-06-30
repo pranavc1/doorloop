@@ -14,9 +14,9 @@ export default function ShareButton({ role }: { role: 'customer' | 'milkman' | '
   return (
     <button
       onClick={handleShare}
-      className="flex items-center gap-2 bg-green-500 text-white px-4 py-3 rounded-xl font-medium text-sm w-full justify-center active:scale-95 transition-transform"
+      className="flex items-center gap-2 bg-[#1E4D8C] text-white px-4 py-3.5 rounded-2xl font-medium text-[14px] w-full justify-center active:scale-95 transition-transform"
     >
-      <span>Share on WhatsApp</span>
+      <span>Tell a neighbour</span>
     </button>
   )
 }
