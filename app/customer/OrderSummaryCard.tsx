@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+const statusConfig: Record<string, { dot: string; label: string; text: string }> = {
+  pending: { dot: 'bg-amber-500', label: 'Pending', text: 'text-amber-700' },
+  delivered: { dot: 'bg-green-600', label: 'Delivered', text: 'text-green-700' },
+}
+
 export default function OrderSummaryCard({
   order,
   isPastCutoff,
@@ -18,6 +23,7 @@ export default function OrderSummaryCard({
 
   const isDelivered = order.status === 'delivered'
   const canEdit = !isDelivered
+  const status = statusConfig[order.status] || statusConfig.pending
 
   async function handleSave() {
     setLoading(true)
@@ -44,27 +50,27 @@ export default function OrderSummaryCard({
 
   if (isEditing) {
     return (
-      <div className="bg-white rounded-xl border-2 border-blue-200 px-4 py-4 space-y-3">
+      <div className="bg-white rounded-2xl border-2 border-blue-300 px-5 py-5 space-y-4">
         <div className="flex items-center gap-3">
           {order.products?.photo_url ? (
-            <img src={order.products.photo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+            <img src={order.products.photo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
           ) : (
-            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-lg">🥛</div>
+            <div className="w-12 h-12 rounded-xl bg-[#F5F4F0] flex items-center justify-center text-xl">🥛</div>
           )}
-          <p className="font-medium text-slate-800">{order.products?.name}</p>
+          <p className="font-semibold text-[#1C1917] text-lg">{order.products?.name}</p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           <button
             onClick={() => setQuantity((q: number) => Math.max(1, q - 1))}
-            className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 text-xl font-bold active:scale-95"
+            className="w-14 h-14 rounded-xl bg-[#F5F4F0] text-[#1C1917] text-2xl font-bold active:scale-95"
           >
             −
           </button>
-          <span className="text-xl font-bold text-slate-800 w-8 text-center">{quantity}</span>
+          <span className="text-2xl font-bold text-[#1C1917] w-10 text-center">{quantity}</span>
           <button
             onClick={() => setQuantity((q: number) => q + 1)}
-            className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 text-xl font-bold active:scale-95"
+            className="w-14 h-14 rounded-xl bg-[#F5F4F0] text-[#1C1917] text-2xl font-bold active:scale-95"
           >
             +
           </button>
@@ -74,20 +80,20 @@ export default function OrderSummaryCard({
           value={notes}
           onChange={e => setNotes(e.target.value)}
           placeholder="Notes (optional)"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3.5 rounded-xl border border-[#EDEAE3] text-[#1C1917] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
 
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={() => setIsEditing(false)}
-            className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-medium"
+            className="flex-1 bg-[#F5F4F0] text-[#1C1917] py-3.5 rounded-xl font-semibold text-base"
           >
-            Cancel
+            Discard
           </button>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold disabled:opacity-50"
+            className="flex-1 bg-blue-600 text-white py-3.5 rounded-xl font-semibold text-base disabled:opacity-50"
           >
             {loading ? 'Saving...' : 'Save changes'}
           </button>
@@ -98,22 +104,22 @@ export default function OrderSummaryCard({
 
   if (showCancelConfirm) {
     return (
-      <div className="bg-white rounded-xl border-2 border-red-200 px-4 py-4 space-y-3">
-        <p className="font-medium text-slate-800">
+      <div className="bg-white rounded-2xl border-2 border-red-300 px-5 py-5 space-y-3">
+        <p className="font-semibold text-[#1C1917] text-lg">
           Cancel {order.products?.name} ({order.quantity}) for {isPastCutoff ? 'tomorrow' : 'today'}?
         </p>
-        <p className="text-sm text-slate-400">This can't be undone after the cutoff time.</p>
-        <div className="flex gap-2">
+        <p className="text-base text-[#78716C]">This can't be undone after the cutoff time.</p>
+        <div className="flex gap-3 pt-1">
           <button
             onClick={() => setShowCancelConfirm(false)}
-            className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-medium"
+            className="flex-1 bg-[#F5F4F0] text-[#1C1917] py-3.5 rounded-xl font-semibold text-base"
           >
             Keep order
           </button>
           <button
             onClick={handleCancel}
             disabled={loading}
-            className="flex-1 bg-red-500 text-white py-3 rounded-xl font-semibold disabled:opacity-50"
+            className="flex-1 bg-red-600 text-white py-3.5 rounded-xl font-semibold text-base disabled:opacity-50"
           >
             {loading ? 'Cancelling...' : 'Yes, cancel'}
           </button>
@@ -123,41 +129,39 @@ export default function OrderSummaryCard({
   }
 
   return (
-    <div className="bg-white rounded-xl px-4 py-3 border border-slate-100">
+    <div className="bg-white rounded-2xl px-5 py-4 border border-[#EDEAE3]">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
           {order.products?.photo_url ? (
-            <img src={order.products.photo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+            <img src={order.products.photo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
           ) : (
-            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-lg">🥛</div>
+            <div className="w-12 h-12 rounded-xl bg-[#F5F4F0] flex items-center justify-center text-xl">🥛</div>
           )}
           <div>
-            <p className="font-medium text-slate-800">{order.products?.name}</p>
-            <p className="text-sm text-slate-400">{order.products?.unit} × {order.quantity}</p>
+            <p className="font-semibold text-[#1C1917] text-base">{order.products?.name}</p>
+            <p className="text-sm text-[#78716C]">{order.products?.unit} × {order.quantity}</p>
             {order.notes && (
-              <p className="text-xs text-blue-600 mt-0.5">📝 {order.notes}</p>
+              <p className="text-sm text-blue-600 mt-0.5">📝 {order.notes}</p>
             )}
           </div>
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-          order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-          'bg-yellow-100 text-yellow-700'
-        }`}>
-          {order.status}
-        </span>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className={`w-2 h-2 rounded-full ${status.dot}`} />
+          <span className={`text-sm font-semibold ${status.text}`}>{status.label}</span>
+        </div>
       </div>
 
       {canEdit && (
-        <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100">
+        <div className="flex gap-3 mt-3 pt-3 border-t border-[#EDEAE3]">
           <button
             onClick={() => setIsEditing(true)}
-            className="text-sm font-medium text-blue-600"
+            className="flex-1 bg-[#EFF4FF] text-blue-700 py-2.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
           >
-            Edit
+            Edit order
           </button>
           <button
             onClick={() => setShowCancelConfirm(true)}
-            className="text-sm font-medium text-red-500"
+            className="flex-1 bg-red-50 text-red-600 py-2.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
           >
             Cancel order
           </button>
@@ -165,7 +169,7 @@ export default function OrderSummaryCard({
       )}
 
       {isDelivered && (
-        <p className="text-xs text-slate-400 mt-2 pt-2 border-t border-slate-100">
+        <p className="text-sm text-[#78716C] mt-3 pt-3 border-t border-[#EDEAE3]">
           Already delivered — can't be changed
         </p>
       )}

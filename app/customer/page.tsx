@@ -66,36 +66,36 @@ export default async function CustomerPage() {
 
   const orderedProductIds = new Set((todayOrders || []).map(o => o.product_id))
   const availableToAdd = products.filter(p => !orderedProductIds.has(p.id))
-
   const hasOrders = (todayOrders?.length || 0) > 0
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
-      <div className="bg-blue-600 px-6 pt-12 pb-6">
+    <div className="min-h-screen bg-[#FAFAF9] pb-12">
+      {/* Header */}
+      <div className="bg-blue-600 px-6 pt-12 pb-7 rounded-b-3xl">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-blue-200 text-sm">Good morning 👋</p>
-            <h1 className="text-white text-2xl font-bold">{profile.name}</h1>
-            <p className="text-blue-200 text-sm mt-1">{profile.flat_number}, {profile.building}</p>
+            <p className="text-blue-100 text-base">Good morning 👋</p>
+            <h1 className="text-white text-3xl font-bold mt-0.5">{profile.name}</h1>
+            <p className="text-blue-100 text-base mt-1">{profile.flat_number}, {profile.building}</p>
           </div>
           <SignOutButton />
         </div>
       </div>
 
-      <div className="px-6 mt-6 space-y-6">
+      <div className="px-5 mt-6 space-y-7">
 
         {/* Existing orders summary */}
         <section>
-          <h2 className="text-lg font-bold text-slate-800 mb-3">
+          <h2 className="text-xl font-bold text-[#1C1917] mb-3 px-1">
             {isPastCutoff ? "Your order for tomorrow" : "Your order for today"}
           </h2>
 
           {!hasOrders ? (
-            <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
-              <p className="text-slate-400 text-sm">You haven't ordered yet</p>
+            <div className="bg-white rounded-2xl border border-[#EDEAE3] px-5 py-7 text-center">
+              <p className="text-[#78716C] text-base">You haven't ordered yet</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {todayOrders?.map((o: any) => (
                 <OrderSummaryCard
                   key={o.id}
@@ -109,25 +109,25 @@ export default async function CustomerPage() {
 
         {/* Add product */}
         <section>
-          <h2 className="text-lg font-bold text-slate-800 mb-3">
+          <h2 className="text-xl font-bold text-[#1C1917] mb-3 px-1">
             {hasOrders ? 'Add another product' : (isPastCutoff ? 'Place order for tomorrow' : 'Place an order for today')}
           </h2>
           {availableToAdd.length > 0 ? (
             <OrderForm products={availableToAdd} userId={user.id} orderDate={orderDate} />
           ) : products.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
-              <p className="text-slate-400 text-sm">No products available right now</p>
+            <div className="bg-white rounded-2xl border border-[#EDEAE3] px-5 py-7 text-center">
+              <p className="text-[#78716C] text-base">No products available right now</p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-slate-100 px-4 py-6 text-center">
-              <p className="text-slate-400 text-sm">You've ordered everything available</p>
+            <div className="bg-white rounded-2xl border border-[#EDEAE3] px-5 py-7 text-center">
+              <p className="text-[#78716C] text-base">You've ordered everything available</p>
             </div>
           )}
         </section>
 
         {/* Invite */}
         <section>
-          <h2 className="text-lg font-bold text-slate-800 mb-3">Invite neighbours</h2>
+          <h2 className="text-xl font-bold text-[#1C1917] mb-3 px-1">Invite neighbours</h2>
           <ShareButton role="customer" />
         </section>
 

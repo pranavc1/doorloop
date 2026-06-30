@@ -43,35 +43,35 @@ export default function OrderForm({ products, userId, orderDate }: {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-4">
+    <div className="bg-white rounded-2xl border border-[#EDEAE3] p-5 space-y-5">
 
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-2">Choose product</label>
-        <div className="space-y-2">
+        <label className="block text-base font-semibold text-[#1C1917] mb-2.5">Choose product</label>
+        <div className="space-y-2.5">
           {products.map(p => (
             <button
               key={p.id}
               onClick={() => setSelectedProduct(p.id)}
-              className={`w-full flex justify-between items-center px-4 py-3 rounded-xl border-2 transition-colors ${
+              className={`w-full flex justify-between items-center px-4 py-3.5 rounded-xl border-2 transition-colors ${
                 selectedProduct === p.id
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-slate-100 bg-slate-50'
+                  : 'border-[#EDEAE3] bg-[#FAFAF9]'
               }`}
             >
               <div className="flex items-center gap-3 text-left">
                 {p.photo_url ? (
-                  <img src={p.photo_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover" />
+                  <img src={p.photo_url} alt={p.name} className="w-11 h-11 rounded-lg object-cover" />
                 ) : (
-                  <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center text-lg">🥛</div>
+                  <div className="w-11 h-11 rounded-lg bg-[#EDEAE3] flex items-center justify-center text-lg">🥛</div>
                 )}
                 <div>
-                  <p className={`font-medium ${selectedProduct === p.id ? 'text-blue-700' : 'text-slate-700'}`}>
+                  <p className={`font-semibold text-base ${selectedProduct === p.id ? 'text-blue-700' : 'text-[#1C1917]'}`}>
                     {p.name}
                   </p>
-                  <p className="text-sm text-slate-400">{p.unit}</p>
+                  <p className="text-sm text-[#78716C]">{p.unit}</p>
                 </div>
               </div>
-              <p className={`font-semibold ${selectedProduct === p.id ? 'text-blue-600' : 'text-slate-500'}`}>
+              <p className={`font-bold text-base ${selectedProduct === p.id ? 'text-blue-600' : 'text-[#78716C]'}`}>
                 ₹{p.price}
               </p>
             </button>
@@ -80,45 +80,45 @@ export default function OrderForm({ products, userId, orderDate }: {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-2">Quantity</label>
-        <div className="flex items-center gap-4">
+        <label className="block text-base font-semibold text-[#1C1917] mb-2.5">Quantity</label>
+        <div className="flex items-center gap-5">
           <button
             onClick={() => setQuantity(q => Math.max(1, q - 1))}
-            className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 text-xl font-bold active:scale-95 transition-transform"
+            className="w-14 h-14 rounded-xl bg-[#F5F4F0] text-[#1C1917] text-2xl font-bold active:scale-95 transition-transform"
           >
             −
           </button>
-          <span className="text-2xl font-bold text-slate-800 w-8 text-center">{quantity}</span>
+          <span className="text-2xl font-bold text-[#1C1917] w-10 text-center">{quantity}</span>
           <button
             onClick={() => setQuantity(q => q + 1)}
-            className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 text-xl font-bold active:scale-95 transition-transform"
+            className="w-14 h-14 rounded-xl bg-[#F5F4F0] text-[#1C1917] text-2xl font-bold active:scale-95 transition-transform"
           >
             +
           </button>
           {selected && (
-            <p className="text-slate-500 text-sm ml-2">= ₹{(selected.price * quantity).toFixed(0)}</p>
+            <p className="text-[#78716C] text-base ml-2">= ₹{(selected.price * quantity).toFixed(0)}</p>
           )}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-1">Notes (optional)</label>
+        <label className="block text-base font-semibold text-[#1C1917] mb-2">Notes (optional)</label>
         <input
           value={notes}
           onChange={e => setNotes(e.target.value)}
           placeholder="e.g. Leave at door"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-full px-4 py-3.5 rounded-xl border border-[#EDEAE3] text-[#1C1917] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
         />
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">{error}</div>
+        <div className="bg-red-50 text-red-700 text-base px-4 py-3.5 rounded-xl">{error}</div>
       )}
 
       <button
         onClick={handleOrder}
         disabled={loading || success}
-        className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-base disabled:opacity-50 active:scale-95 transition-transform"
+        className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50 active:scale-95 transition-transform"
       >
         {success ? '✓ Order placed!' : loading ? 'Placing order...' : 'Place order'}
       </button>
