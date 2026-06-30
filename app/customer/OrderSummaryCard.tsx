@@ -140,8 +140,8 @@ export default function OrderSummaryCard({
           <div>
             <p className="font-medium text-[14px] text-[#2C2C2A]">{order.products?.name} · {order.quantity}</p>
             <p className="text-[12px] text-[#8a8578] mt-0.5">
-              {order.products?.unit}{order.notes ? ` · ${order.notes}` : ''}
-            </p>
+  {order.products?.unit} · ₹{((order.products?.price || 0) * order.quantity).toFixed(0)}{order.notes ? ` · ${order.notes}` : ''}
+</p>
           </div>
         </div>
         <div

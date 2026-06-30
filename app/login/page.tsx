@@ -32,53 +32,53 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center px-6">
+    <div className="min-h-screen bg-[#FBF8F2] flex flex-col justify-center px-5">
       {/* Logo */}
-      <div className="mb-10 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
+      <div className="mb-9 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-[#1E4D8C] rounded-2xl mb-4">
           <span className="text-white text-2xl">🔁</span>
         </div>
-        <h1 className="text-3xl font-bold text-slate-900">DoorLoop</h1>
-        <p className="text-slate-500 mt-1">Daily deliveries, simplified</p>
+        <h1 className="text-[28px] font-medium text-[#2C2C2A]">DoorLoop</h1>
+        <p className="text-[#8a8578] mt-1 text-[14px]">Daily deliveries, simplified</p>
       </div>
 
       {/* Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-        <h2 className="text-xl font-semibold text-slate-800 mb-6">
+      <div className="bg-white rounded-3xl p-6">
+        <h2 className="text-[18px] font-medium text-[#2C2C2A] mb-5">
           {isSignUp ? 'Create account' : 'Welcome back'}
         </h2>
 
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">Email</label>
+            <label className="block text-[13px] font-medium text-[#6b6759] mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              className="w-full px-4 py-3.5 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[15px]"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">Password</label>
+            <label className="block text-[13px] font-medium text-[#6b6759] mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              className="w-full px-4 py-3.5 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[15px]"
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">
+            <div className="bg-red-50 text-red-700 text-[13px] px-4 py-3 rounded-xl">
               {error}
             </div>
           )}
 
           {message && (
-            <div className="bg-green-50 text-green-600 text-sm px-4 py-3 rounded-xl">
+            <div className="bg-[#E1F5EE] text-[#0F6E56] text-[13px] px-4 py-3 rounded-xl">
               {message}
             </div>
           )}
@@ -86,7 +86,7 @@ export default function LoginPage() {
           <button
             onClick={handleSubmit}
             disabled={loading || !email || !password}
-            className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-base disabled:opacity-50 active:scale-95 transition-transform"
+            className="w-full bg-[#1E4D8C] text-white py-4 rounded-xl font-medium text-[15px] disabled:opacity-50 active:scale-95 transition-transform"
           >
             {loading ? 'Please wait...' : isSignUp ? 'Create account' : 'Sign in'}
           </button>
@@ -94,11 +94,11 @@ export default function LoginPage() {
       </div>
 
       {/* Toggle */}
-      <p className="text-center text-slate-500 mt-6">
+      <p className="text-center text-[#8a8578] mt-6 text-[14px]">
         {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
         <button
           onClick={() => { setIsSignUp(!isSignUp); setError(''); setMessage('') }}
-          className="text-blue-600 font-medium"
+          className="text-[#1E4D8C] font-medium"
         >
           {isSignUp ? 'Sign in' : 'Sign up'}
         </button>

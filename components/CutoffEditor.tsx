@@ -31,39 +31,31 @@ export default function CutoffEditor({
       .update({ cutoff_hour: hour, cutoff_minute: minute, updated_at: new Date().toISOString() })
       .eq('id', 'global')
     setSaved(true)
-    setTimeout(() => {
-      setSaved(false)
-      setIsOpen(false)
-    }, 1500)
+    setTimeout(() => { setSaved(false); setIsOpen(false) }, 1500)
     setLoading(false)
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-      {/* Summary row — always visible */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 flex justify-between items-center"
-      >
+    <div className="bg-white rounded-2xl overflow-hidden">
+      <button onClick={() => setIsOpen(!isOpen)} className="w-full px-4 py-3.5 flex justify-between items-center">
         <div className="text-left">
-          <p className="text-sm font-medium text-slate-700">Order cutoff</p>
-          <p className="text-xs text-slate-400">{formatTime(hour, minute)} IST</p>
+          <p className="text-[14px] font-medium text-[#2C2C2A]">Order cutoff</p>
+          <p className="text-[12px] text-[#8a8578]">{formatTime(hour, minute)} IST</p>
         </div>
-        <span className="text-slate-400 text-lg">{isOpen ? '▲' : '▼'}</span>
+        <span className="text-[#8a8578] text-base">{isOpen ? '▲' : '▼'}</span>
       </button>
 
-      {/* Expanded editor */}
       {isOpen && (
-        <div className="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3">
-          <p className="text-sm text-slate-500">Customers cannot place same-day orders after this time</p>
+        <div className="px-4 pb-4 space-y-3 border-t border-[#F0EDE5] pt-3">
+          <p className="text-[13px] text-[#8a8578]">Customers can't place same-day orders after this time</p>
 
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <label className="block text-xs text-slate-500 mb-1">Hour</label>
+              <label className="block text-[11px] text-[#8a8578] mb-1">Hour</label>
               <select
                 value={hour}
                 onChange={e => setHour(parseInt(e.target.value))}
-                className="w-full px-3 py-3 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                className="w-full px-3 py-3 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[14px]"
               >
                 {Array.from({ length: 24 }, (_, i) => (
                   <option key={i} value={i}>
@@ -72,13 +64,12 @@ export default function CutoffEditor({
                 ))}
               </select>
             </div>
-
-            <div className="w-28">
-              <label className="block text-xs text-slate-500 mb-1">Minute</label>
+            <div className="w-24">
+              <label className="block text-[11px] text-[#8a8578] mb-1">Min</label>
               <select
                 value={minute}
                 onChange={e => setMinute(parseInt(e.target.value))}
-                className="w-full px-3 py-3 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                className="w-full px-3 py-3 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[14px]"
               >
                 {[0, 15, 30, 45].map(m => (
                   <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>
@@ -90,9 +81,9 @@ export default function CutoffEditor({
           <button
             onClick={handleSave}
             disabled={loading || saved}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold disabled:opacity-50 active:scale-95 transition-transform"
+            className="w-full bg-[#1E4D8C] text-white py-3 rounded-xl font-medium text-[14px] disabled:opacity-50 active:scale-95 transition-transform"
           >
-            {saved ? '✓ Saved!' : loading ? 'Saving...' : 'Save cutoff time'}
+            {saved ? '✓ Saved' : loading ? 'Saving...' : 'Save cutoff time'}
           </button>
         </div>
       )}

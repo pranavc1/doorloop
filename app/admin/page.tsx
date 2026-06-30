@@ -42,99 +42,119 @@ export default async function AdminPage() {
     .select('*')
     .order('name', { ascending: true })
 
+  const pendingCount = orders?.filter(o => o.status === 'pending').length || 0
+  const deliveredCount = orders?.filter(o => o.status === 'delivered').length || 0
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
-      <div className="bg-blue-600 px-6 pt-12 pb-6">
-        <div className="flex justify-between items-start">
-            <div>
-            <p className="text-blue-200 text-sm">Admin</p>
-            <h1 className="text-white text-2xl font-bold">DoorLoop</h1>
-            </div>
-            <SignOutButton />
-        </div>
-    </div>
+    <div className="min-h-screen bg-[#FBF8F2] pb-12">
 
-      <div className="px-6 mt-6 space-y-8">
+      {/* Header */}
+      <div className="bg-[#1E4D8C] px-5 pt-11 pb-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <p className="text-[12px] text-white/65">Admin</p>
+            <h1 className="text-[22px] font-medium text-white mt-0.5">DoorLoop</h1>
+          </div>
+          <SignOutButton />
+        </div>
+        <div className="flex gap-2.5">
+          <div className="flex-1 bg-white/10 rounded-2xl px-3 py-3 text-center">
+            <p className="text-[18px] font-medium text-white">{pendingCount}</p>
+            <p className="text-[11px] text-white/65 mt-0.5">Pending</p>
+          </div>
+          <div className="flex-1 bg-white/10 rounded-2xl px-3 py-3 text-center">
+            <p className="text-[18px] font-medium text-white">{deliveredCount}</p>
+            <p className="text-[11px] text-white/65 mt-0.5">Delivered</p>
+          </div>
+          <div className="flex-1 bg-white/10 rounded-2xl px-3 py-3 text-center">
+            <p className="text-[18px] font-medium text-white">{products?.length || 0}</p>
+            <p className="text-[11px] text-white/65 mt-0.5">Products</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-3.5 mt-5 space-y-7">
+
+        {/* Products */}
         <section>
-          <h2 className="text-lg font-bold text-slate-800 mb-3">Products</h2>
+          <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">Products</h2>
           <AddProductForm />
-          <div className="space-y-2 mt-4">
+          <div className="space-y-2 mt-3">
             {products?.length === 0 && (
-              <p className="text-slate-400 text-sm">No products yet. Add one above.</p>
+              <p className="text-[#8a8578] text-[13px] px-1.5">No products yet. Add one above.</p>
             )}
             {products?.map(p => (
-  <div key={p.id} className="bg-white rounded-xl px-4 py-3 flex justify-between items-center border border-slate-100">
-    <div className="flex items-center gap-3">
-      {p.photo_url ? (
-        <img
-          src={p.photo_url}
-          alt={p.name}
-          className="w-12 h-12 rounded-xl object-cover border border-slate-100"
-        />
-      ) : (
-        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
-          🥛
-        </div>
-      )}
-      <div>
-        <p className="font-medium text-slate-800">{p.name}</p>
-        <p className="text-sm text-slate-400">{p.unit}</p>
-      </div>
-    </div>
-    <p className="font-semibold text-blue-600">₹{p.price}</p>
-  </div>
-))}
+              <div key={p.id} className="bg-white rounded-2xl px-4 py-3 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center text-base overflow-hidden flex-shrink-0">
+                    {p.photo_url ? (
+                      <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" />
+                    ) : '🥛'}
+                  </div>
+                  <div>
+                    <p className="font-medium text-[14px] text-[#2C2C2A]">{p.name}</p>
+                    <p className="text-[12px] text-[#8a8578]">{p.unit}</p>
+                  </div>
+                </div>
+                <p className="font-medium text-[14px] text-[#1E4D8C]">₹{p.price}</p>
+              </div>
+            ))}
           </div>
         </section>
-        <section>
-  <h2 className="text-lg font-bold text-slate-800 mb-3">Buildings</h2>
-  <BuildingManager buildings={buildings || []} />
-</section>
 
+        {/* Buildings */}
         <section>
-  <h2 className="text-lg font-bold text-slate-800 mb-3">Delivery settings</h2>
-  <CutoffEditor
-    currentHour={settings?.cutoff_hour ?? 5}
-    currentMinute={settings?.cutoff_minute ?? 0}
-  />
-</section>
+          <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">Buildings</h2>
+          <BuildingManager buildings={buildings || []} />
+        </section>
 
+        {/* Delivery settings */}
         <section>
-          <h2 className="text-lg font-bold text-slate-800 mb-3">Recent Orders</h2>
+          <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">Delivery settings</h2>
+          <CutoffEditor
+            currentHour={settings?.cutoff_hour ?? 5}
+            currentMinute={settings?.cutoff_minute ?? 0}
+          />
+        </section>
+
+        {/* Recent orders */}
+        <section>
+          <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">Recent orders</h2>
           <div className="space-y-2">
             {orders?.length === 0 && (
-              <p className="text-slate-400 text-sm">No orders yet.</p>
+              <p className="text-[#8a8578] text-[13px] px-1.5">No orders yet.</p>
             )}
             {(orders as any[])?.map((o) => (
-  <div key={o.id} className="bg-white rounded-xl px-4 py-3 border border-slate-100">
-    <div className="flex justify-between items-start">
-      <div>
-        <p className="font-medium text-slate-800">{o.users?.name}</p>
-        <p className="text-sm text-slate-400">{o.users?.flat_number}, {o.users?.building}</p>
-        <p className="text-sm text-slate-600 mt-1">{o.products?.name} × {o.quantity}</p>
-        {o.notes && (
-          <p className="text-xs text-blue-600 mt-1">📝 {o.notes}</p>
-        )}
-      </div>
-      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-        o.status === 'delivered' ? 'bg-green-100 text-green-700' :
-        o.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-        'bg-yellow-100 text-yellow-700'
-      }`}>
-        {o.status}
-      </span>
-    </div>
-    <p className="text-xs text-slate-400 mt-1">{o.date}</p>
-    <OrderStatusButton orderId={o.id} currentStatus={o.status} />
-  </div>
-))}
+              <div key={o.id} className="bg-white rounded-2xl px-4 py-3.5">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-[14px] text-[#2C2C2A]">{o.users?.name}</p>
+                    <p className="text-[12px] text-[#8a8578]">{o.users?.flat_number}, {o.users?.building}</p>
+                    <p className="text-[13px] text-[#2C2C2A] mt-1">{o.products?.name} × {o.quantity}</p>
+                    {o.notes && (
+                      <p className="text-[12px] text-[#1E4D8C] mt-0.5">📝 {o.notes}</p>
+                    )}
+                  </div>
+                  <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium flex-shrink-0 ${
+                    o.status === 'delivered' ? 'bg-[#E1F5EE] text-[#0F6E56]' :
+                    o.status === 'cancelled' ? 'bg-red-50 text-red-700' :
+                    'bg-[#FAEEDA] text-[#854F0B]'
+                  }`}>
+                    {o.status}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#8a8578] mt-1.5">{o.date}</p>
+                <OrderStatusButton orderId={o.id} currentStatus={o.status} />
+              </div>
+            ))}
           </div>
         </section>
-        <section>
-  <h2 className="text-lg font-bold text-slate-800 mb-3">Invite neighbours</h2>
-  <ShareButton role="admin"/>
-</section>
+
+        {/* Invite */}
+        <section className="px-1.5">
+          <ShareButton role="admin" />
+        </section>
+
       </div>
     </div>
   )

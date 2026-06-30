@@ -34,10 +34,7 @@ export default function MilkmanDeliveryList({
     setLoading(key)
     const supabase = createClient()
     const ids = group.orders.map(o => o.id)
-    await supabase
-      .from('orders')
-      .update({ status: 'delivered' })
-      .in('id', ids)
+    await supabase.from('orders').update({ status: 'delivered' }).in('id', ids)
     setStatuses(prev => ({ ...prev, [key]: 'delivered' }))
     setLoading(null)
   }
@@ -47,113 +44,83 @@ export default function MilkmanDeliveryList({
     setLoading(key)
     const supabase = createClient()
     const ids = group.orders.map(o => o.id)
-    await supabase
-      .from('orders')
-      .update({ status: 'pending' })
-      .in('id', ids)
+    await supabase.from('orders').update({ status: 'pending' }).in('id', ids)
     setStatuses(prev => ({ ...prev, [key]: 'pending' }))
     setLoading(null)
   }
 
-  const pendingList = groupedList.filter(g =>
-    statuses[`${g.userId}-${g.date}`] !== 'delivered'
-  )
-  const deliveredList = groupedList.filter(g =>
-    statuses[`${g.userId}-${g.date}`] === 'delivered'
-  )
+  const pendingList = groupedList.filter(g => statuses[`${g.userId}-${g.date}`] !== 'delivered')
+  const deliveredList = groupedList.filter(g => statuses[`${g.userId}-${g.date}`] === 'delivered')
+
+  function summary(orders: any[]) {
+    return orders.map(o => `${o.products?.name} × ${o.quantity}`).join(', ')
+  }
 
   return (
-    <div className="space-y-4">
-
-      {/* Pending */}
-      {pendingList.length > 0 && (
-        <div className="space-y-2">
-          {pendingList.map(g => {
-            const key = `${g.userId}-${g.date}`
-            const isLoading = loading === key
-            return (
-              <div key={key} className="bg-white rounded-xl border border-slate-100 px-4 py-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">
-                        {g.flat}
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {g.date === today ? 'Today' : 'Tomorrow'}
-                      </span>
-                    </div>
-                    <p className="font-semibold text-slate-800 mt-1">{g.name}</p>
-                    <div className="mt-1 space-y-0.5">
-                      {g.orders.map(o => (
-                        <div key={o.id}>
-                          <p className="text-sm text-slate-600">
-                            {o.products?.name} × {o.quantity}
-                          </p>
-                          {o.notes && (
-                            <p className="text-xs text-blue-500">📝 {o.notes}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => markDelivered(g)}
-                    disabled={isLoading}
-                    className="ml-3 flex-shrink-0 bg-green-500 text-white text-sm font-semibold px-3 py-2 rounded-xl active:scale-95 transition-transform disabled:opacity-50"
-                  >
-                    {isLoading ? '...' : '✓ Done'}
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Delivered */}
-      {deliveredList.length > 0 && (
-        <div>
-          <p className="text-sm font-medium text-slate-400 mb-2">Delivered ✓</p>
-          <div className="space-y-2">
-            {deliveredList.map(g => {
-              const key = `${g.userId}-${g.date}`
-              const isLoading = loading === key
-              return (
-                <div key={key} className="bg-white rounded-xl border border-slate-100 px-4 py-3 opacity-60">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-lg">
-                          {g.flat}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {g.date === today ? 'Today' : 'Tomorrow'}
-                        </span>
-                      </div>
-                      <p className="font-medium text-slate-700 mt-1">{g.name}</p>
-                      <p className="text-sm text-slate-400">
-                        {g.orders.map(o => `${o.products?.name} ×${o.quantity}`).join(', ')}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => markPending(g)}
-                      disabled={isLoading}
-                      className="ml-3 flex-shrink-0 text-xs text-slate-400 underline"
-                    >
-                      {isLoading ? '...' : 'Undo'}
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
+    <div className="space-y-2">
+      {pendingList.map(g => {
+        const key = `${g.userId}-${g.date}`
+        const isLoading = loading === key
+        const note = g.orders.find(o => o.notes)?.notes
+        return (
+          <div key={key} className="bg-white rounded-2xl px-3.5 py-3 flex items-center gap-3">
+            <div className="w-[42px] h-[42px] rounded-xl bg-[#E6F1FB] flex items-center justify-center text-[12px] font-medium text-[#1E4D8C] flex-shrink-0">
+              {g.flat}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[14px] font-medium text-[#2C2C2A] flex items-center gap-1.5">
+                {g.name}
+                {g.date !== today && (
+                  <span className="text-[10px] font-normal text-[#8a8578] bg-[#F5F2EA] px-1.5 py-0.5 rounded-full">tomorrow</span>
+                )}
+              </p>
+              <p className="text-[12px] text-[#8a8578] mt-0.5 truncate">{summary(g.orders)}</p>
+              {note && (
+                <p className="text-[11px] text-[#1E4D8C] mt-0.5 truncate">📝 {note}</p>
+              )}
+            </div>
+            <button
+              onClick={() => markDelivered(g)}
+              disabled={isLoading}
+              className="w-10 h-10 rounded-xl bg-[#E1F5EE] flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform disabled:opacity-50"
+              aria-label="Mark delivered"
+            >
+              {isLoading ? (
+                <span className="text-[#0F6E56] text-xs">...</span>
+              ) : (
+                <span className="text-[#0F6E56] text-lg">✓</span>
+              )}
+            </button>
           </div>
-        </div>
-      )}
+        )
+      })}
+
+      {deliveredList.map(g => {
+        const key = `${g.userId}-${g.date}`
+        const isLoading = loading === key
+        return (
+          <div key={key} className="bg-white rounded-2xl px-3.5 py-3 flex items-center gap-3 opacity-50">
+            <div className="w-[42px] h-[42px] rounded-xl bg-[#E1F5EE] flex items-center justify-center text-[12px] font-medium text-[#0F6E56] flex-shrink-0">
+              {g.flat}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[14px] font-medium text-[#2C2C2A]">{g.name} — done</p>
+              <p className="text-[12px] text-[#8a8578] mt-0.5 truncate">{summary(g.orders)}</p>
+            </div>
+            <button
+              onClick={() => markPending(g)}
+              disabled={isLoading}
+              className="text-[12px] text-[#8a8578] flex-shrink-0"
+            >
+              {isLoading ? '...' : 'Undo'}
+            </button>
+          </div>
+        )
+      })}
 
       {pendingList.length === 0 && deliveredList.length > 0 && (
-        <div className="bg-green-50 rounded-xl px-4 py-4 text-center">
-          <p className="text-green-700 font-semibold">All deliveries done! 🎉</p>
+        <div className="bg-[#E1F5EE] rounded-2xl px-4 py-3.5 text-center">
+          <p className="text-[#0F6E56] font-medium text-[13px]">All done here 🎉</p>
         </div>
       )}
     </div>

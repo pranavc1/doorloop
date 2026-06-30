@@ -42,10 +42,7 @@ export default function AddProductForm() {
         return
       }
 
-      const { data: urlData } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(fileName)
-
+      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName)
       photoUrl = urlData.publicUrl
     }
 
@@ -73,14 +70,14 @@ export default function AddProductForm() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3">
-      <p className="font-medium text-slate-700">Add new product</p>
+    <div className="bg-white rounded-2xl p-4 space-y-3">
+      <p className="font-medium text-[14px] text-[#2C2C2A]">Add new product</p>
 
       <input
         value={name}
         onChange={e => setName(e.target.value)}
         placeholder="Product name (e.g. Full Cream Milk)"
-        className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+        className="w-full px-4 py-3.5 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[14px]"
       />
 
       <div className="flex gap-2">
@@ -89,60 +86,44 @@ export default function AddProductForm() {
           onChange={e => setPrice(e.target.value)}
           placeholder="Price (₹)"
           type="number"
-          className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="flex-1 px-4 py-3.5 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[14px]"
         />
         <input
           value={unit}
           onChange={e => setUnit(e.target.value)}
           placeholder="Unit"
-          className="w-28 px-4 py-3 rounded-xl border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          className="w-28 px-4 py-3.5 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] placeholder-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[14px]"
         />
       </div>
 
-      {/* Photo upload */}
       <div>
-        <label className="block text-sm font-medium text-slate-600 mb-1">
-          Product photo (optional)
-        </label>
+        <label className="block text-[13px] font-medium text-[#6b6759] mb-1.5">Product photo (optional)</label>
         <label className="flex items-center gap-3 cursor-pointer">
           {photoPreview ? (
-            <img
-              src={photoPreview}
-              alt="Preview"
-              className="w-16 h-16 rounded-xl object-cover border border-slate-200"
-            />
+            <img src={photoPreview} alt="Preview" className="w-14 h-14 rounded-xl object-cover" />
           ) : (
-            <div className="w-16 h-16 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-2xl">
-              📷
-            </div>
+            <div className="w-14 h-14 rounded-xl bg-[#FBF8F2] border-2 border-dashed border-[#E5E1D6] flex items-center justify-center text-xl">📷</div>
           )}
           <div>
-            <p className="text-sm font-medium text-blue-600">
+            <p className="text-[13px] font-medium text-[#1E4D8C]">
               {photoPreview ? 'Change photo' : 'Add photo'}
             </p>
-            <p className="text-xs text-slate-400">Tap to choose from your device</p>
+            <p className="text-[11px] text-[#8a8578]">Tap to choose from your device</p>
           </div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
+          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
         </label>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">
-          {error}
-        </div>
+        <div className="bg-red-50 text-red-700 text-[13px] px-4 py-3 rounded-xl">{error}</div>
       )}
 
       <button
         onClick={handleAdd}
         disabled={loading || !name || !price}
-        className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold disabled:opacity-50 active:scale-95 transition-transform"
+        className="w-full bg-[#1E4D8C] text-white py-3.5 rounded-xl font-medium text-[14px] disabled:opacity-50 active:scale-95 transition-transform"
       >
-        {success ? '✓ Added!' : loading ? 'Uploading...' : 'Add Product'}
+        {success ? '✓ Added!' : loading ? 'Uploading...' : 'Add product'}
       </button>
     </div>
   )

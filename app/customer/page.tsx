@@ -59,7 +59,7 @@ export default async function CustomerPage() {
 
   const { data: todayOrders } = await supabase
     .from('orders')
-    .select('*, products(name, unit, photo_url)')
+    .select('*, products(name, unit, photo_url, price)')
     .eq('user_id', user.id)
     .eq('date', orderDate)
     .neq('status', 'cancelled')
