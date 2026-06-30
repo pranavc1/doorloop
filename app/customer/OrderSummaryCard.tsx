@@ -11,9 +11,11 @@ const statusConfig: Record<string, { dot: string; label: string; bg: string; tex
 export default function OrderSummaryCard({
   order,
   isPastCutoff,
+  isLocked,
 }: {
   order: any
   isPastCutoff: boolean
+  isLocked: boolean
 }) {
   const [editTarget, setEditTarget] = useState<'none' | 'today' | 'subscription'>('none')
   const [quantity, setQuantity] = useState(order.quantity)
@@ -22,7 +24,7 @@ export default function OrderSummaryCard({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const isDelivered = order.status === 'delivered'
-  const canEdit = !isDelivered && !isPastCutoff
+  const canEdit = !isDelivered && !isLocked
   const isSubscribed = !!order.subscription_id
   const status = statusConfig[order.status] || statusConfig.pending
 
@@ -228,11 +230,11 @@ export default function OrderSummaryCard({
         </p>
       )}
 
-      {!isDelivered && isPastCutoff && (
-        <p className="text-[12px] text-[#8a8578] mt-3 pt-3 border-t border-[#F0EDE5]">
-          Cutoff time has passed — your order is locked in
-        </p>
-      )}
+      {!isDelivered && isLocked && (
+  <p className="text-[12px] text-[#8a8578] mt-3 pt-3 border-t border-[#F0EDE5]">
+    Cutoff time has passed — your order is locked in
+  </p>
+)}
     </div>
   )
 }

@@ -121,7 +121,12 @@ export default async function CustomerPage() {
           ) : (
             <div className="space-y-2.5">
               {todayOrders?.map((o: any) => (
-                <OrderSummaryCard key={o.id} order={o} isPastCutoff={isPastCutoff} />
+                <OrderSummaryCard
+  key={o.id}
+  order={o}
+  isPastCutoff={isPastCutoff}
+  isLocked={false}
+/>
               ))}
             </div>
           )}
