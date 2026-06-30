@@ -4,6 +4,8 @@ import OrderForm from './OrderForm'
 import OrderSummaryCard from './OrderSummaryCard'
 import SignOutButton from '@/components/SignOutButton'
 import ShareButton from '@/components/ShareButton'
+import CutoffBanner from './CutoffBanner'
+import SubscriptionsList from './SubscriptionsList'
 
 export default async function CustomerPage() {
   const supabase = await createClient()
@@ -64,6 +66,12 @@ export default async function CustomerPage() {
     .eq('date', orderDate)
     .neq('status', 'cancelled')
 
+  const { data: subscriptions } = await supabase
+    .from('subscriptions')
+    .select('*, products(name, unit, photo_url)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
+
   const orderedProductIds = new Set((todayOrders || []).map(o => o.product_id))
   const availableToAdd = products.filter(p => !orderedProductIds.has(p.id))
   const hasOrders = (todayOrders?.length || 0) > 0
@@ -89,6 +97,13 @@ export default async function CustomerPage() {
             <SignOutButton />
           </div>
         </div>
+      </div>
+      <div className="px-3.5 mt-4">
+        <CutoffBanner
+          cutoffHour={cutoffHour}
+          cutoffMinute={cutoffMinute}
+          isPastCutoff={isPastCutoff}
+        />
       </div>
 
       <div className="px-3.5 mt-4 space-y-7">
@@ -129,6 +144,12 @@ export default async function CustomerPage() {
             </div>
           )}
         </section>
+        {subscriptions && subscriptions.length > 0 && (
+  <section>
+    <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">Your subscriptions</h2>
+    <SubscriptionsList subscriptions={subscriptions} />
+  </section>
+)}
 
         {/* Invite */}
         <section className="px-1.5">

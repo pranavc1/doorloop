@@ -6,6 +6,7 @@ import ShareButton from '@/components/ShareButton'
 import CutoffEditor from '@/components/CutoffEditor'
 import OrderStatusButton from './OrderStatusButton'
 import BuildingManager from './BuildingManager'
+import SubscriptionsManager from './SubscriptionsManager'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -41,6 +42,11 @@ export default async function AdminPage() {
     .from('buildings')
     .select('*')
     .order('name', { ascending: true })
+
+  const { data: subscriptions } = await supabase
+    .from('subscriptions')
+    .select('*, users(name, flat_number, building), products(name, unit)')
+    .order('created_at', { ascending: false })
 
   const pendingCount = orders?.filter(o => o.status === 'pending').length || 0
   const deliveredCount = orders?.filter(o => o.status === 'delivered').length || 0
@@ -106,6 +112,10 @@ export default async function AdminPage() {
         <section>
           <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">Buildings</h2>
           <BuildingManager buildings={buildings || []} />
+        </section>
+        <section>
+          <h2 className="text-[15px] font-medium text-[#2C2C2A] px-1.5 mb-2.5">Subscriptions</h2>
+          <SubscriptionsManager subscriptions={subscriptions || []} />
         </section>
 
         {/* Delivery settings */}

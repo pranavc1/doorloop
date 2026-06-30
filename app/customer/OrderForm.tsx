@@ -14,6 +14,7 @@ export default function OrderForm({ products, userId, orderDate }: {
   const [activeProduct, setActiveProduct] = useState<Product | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [notes, setNotes] = useState('')
+  const [mode, setMode] = useState<'once' | 'daily'>('once')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -22,6 +23,7 @@ export default function OrderForm({ products, userId, orderDate }: {
     setActiveProduct(p)
     setQuantity(1)
     setNotes('')
+    setMode('once')
     setError('')
   }
 
@@ -31,33 +33,70 @@ export default function OrderForm({ products, userId, orderDate }: {
     setError('')
     const supabase = createClient()
 
-    const { error } = await supabase.from('orders').insert({
-      user_id: userId,
-      product_id: activeProduct.id,
-      quantity,
-      date: orderDate,
-      notes: notes || null,
-      status: 'pending',
-    })
+    if (mode === 'daily') {
+      // Create subscription
+      const { data: sub, error: subError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: userId,
+          product_id: activeProduct.id,
+          quantity,
+          notes: notes || null,
+        })
+        .select()
+        .single()
 
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
+      if (subError) {
+        setError(subError.message)
+        setLoading(false)
+        return
+      }
+
+      // Also create today/tomorrow's order linked to this subscription
+      const { error: orderError } = await supabase.from('orders').insert({
+        user_id: userId,
+        product_id: activeProduct.id,
+        quantity,
+        date: orderDate,
+        notes: notes || null,
+        status: 'pending',
+        subscription_id: sub.id,
+      })
+
+      if (orderError) {
+        setError(orderError.message)
+        setLoading(false)
+        return
+      }
+    } else {
+      // One-time order
+      const { error } = await supabase.from('orders').insert({
+        user_id: userId,
+        product_id: activeProduct.id,
+        quantity,
+        date: orderDate,
+        notes: notes || null,
+        status: 'pending',
+      })
+
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+        return
+      }
     }
 
     setSuccess(true)
     setTimeout(() => { setSuccess(false); window.location.reload() }, 1100)
   }
 
-  // Expanded form for the selected tile
   if (activeProduct) {
     return (
       <div className="bg-white rounded-2xl p-4 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center text-lg flex-shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center text-lg flex-shrink-0 overflow-hidden">
             {activeProduct.photo_url ? (
-              <img src={activeProduct.photo_url} alt="" className="w-full h-full rounded-xl object-cover" />
+              <img src={activeProduct.photo_url} alt="" className="w-full h-full object-cover" />
             ) : '🥛'}
           </div>
           <div>
@@ -65,6 +104,32 @@ export default function OrderForm({ products, userId, orderDate }: {
             <p className="text-[12px] text-[#8a8578]">{activeProduct.unit} · ₹{activeProduct.price}</p>
           </div>
         </div>
+
+        {/* One-time / Daily toggle */}
+        <div className="flex bg-[#FBF8F2] rounded-xl p-1">
+          <button
+            onClick={() => setMode('once')}
+            className={`flex-1 text-center py-2.5 rounded-lg text-[13px] font-medium transition-colors ${
+              mode === 'once' ? 'bg-white text-[#2C2C2A]' : 'text-[#8a8578]'
+            }`}
+          >
+            One-time
+          </button>
+          <button
+            onClick={() => setMode('daily')}
+            className={`flex-1 text-center py-2.5 rounded-lg text-[13px] font-medium transition-colors flex items-center justify-center gap-1.5 ${
+              mode === 'daily' ? 'bg-white text-[#2C2C2A]' : 'text-[#8a8578]'
+            }`}
+          >
+            <span>🔁</span> Daily
+          </button>
+        </div>
+
+        {mode === 'daily' && (
+          <p className="text-[12px] text-[#1E4D8C] bg-[#E6F1FB] px-3 py-2.5 rounded-xl">
+            We'll order this for you every day automatically. You can pause or cancel anytime.
+          </p>
+        )}
 
         <div className="flex items-center gap-4">
           <button
@@ -80,7 +145,7 @@ export default function OrderForm({ products, userId, orderDate }: {
           >
             +
           </button>
-          <p className="text-[#8a8578] text-[13px] ml-1">= ₹{(activeProduct.price * quantity).toFixed(0)}</p>
+          <p className="text-[#8a8578] text-[13px] ml-1">= ₹{(activeProduct.price * quantity).toFixed(0)}{mode === 'daily' ? '/day' : ''}</p>
         </div>
 
         <input
@@ -106,14 +171,13 @@ export default function OrderForm({ products, userId, orderDate }: {
             disabled={loading || success}
             className="flex-1 bg-[#1E4D8C] text-white py-3.5 rounded-xl font-medium text-[14px] disabled:opacity-50 active:scale-95 transition-transform"
           >
-            {success ? '✓ Ordered!' : loading ? 'Placing...' : 'Confirm order'}
+            {success ? '✓ Done!' : loading ? 'Saving...' : mode === 'daily' ? 'Start subscription' : 'Confirm order'}
           </button>
         </div>
       </div>
     )
   }
 
-  // Default — horizontal tile scroller
   return (
     <div className="flex gap-2.5 overflow-x-auto pb-1 px-1.5 -mx-1.5">
       {products.map((p, i) => (
