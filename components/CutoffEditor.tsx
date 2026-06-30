@@ -57,11 +57,11 @@ export default function CutoffEditor({
                 onChange={e => setHour(parseInt(e.target.value))}
                 className="w-full px-3 py-3 rounded-xl bg-[#FBF8F2] text-[#2C2C2A] focus:outline-none focus:ring-2 focus:ring-[#1E4D8C] text-[14px]"
               >
-                {Array.from({ length: 24 }, (_, i) => (
-                  <option key={i} value={i}>
-                    {i.toString().padStart(2, '0')} ({i === 0 ? 'midnight' : i < 12 ? `${i}am` : i === 12 ? '12pm' : `${i - 12}pm`})
-                  </option>
-                ))}
+                {[23, 0, 1, 2, 3, 4, 5].map(i => (
+  <option key={i} value={i}>
+    {i === 23 ? '11:00 PM' : i === 0 ? '12:00 AM (midnight)' : `${i}:00 AM`}
+  </option>
+))}
               </select>
             </div>
             <div className="w-24">
