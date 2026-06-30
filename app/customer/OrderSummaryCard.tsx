@@ -15,17 +15,18 @@ export default function OrderSummaryCard({
   order: any
   isPastCutoff: boolean
 }) {
-  const [isEditing, setIsEditing] = useState(false)
+  const [editTarget, setEditTarget] = useState<'none' | 'today' | 'subscription'>('none')
   const [quantity, setQuantity] = useState(order.quantity)
   const [notes, setNotes] = useState(order.notes || '')
   const [loading, setLoading] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const isDelivered = order.status === 'delivered'
-  const canEdit = !isDelivered
+  const canEdit = !isDelivered && !isPastCutoff
+  const isSubscribed = !!order.subscription_id
   const status = statusConfig[order.status] || statusConfig.pending
 
-  async function handleSave() {
+  async function handleSaveToday() {
     setLoading(true)
     const supabase = createClient()
     await supabase
@@ -33,7 +34,24 @@ export default function OrderSummaryCard({
       .update({ quantity, notes: notes || null })
       .eq('id', order.id)
     setLoading(false)
-    setIsEditing(false)
+    setEditTarget('none')
+    window.location.reload()
+  }
+
+  async function handleSaveSubscription() {
+    setLoading(true)
+    const supabase = createClient()
+    await supabase
+      .from('subscriptions')
+      .update({ quantity, notes: notes || null })
+      .eq('id', order.subscription_id)
+    // also update today's order to match immediately
+    await supabase
+      .from('orders')
+      .update({ quantity, notes: notes || null })
+      .eq('id', order.id)
+    setLoading(false)
+    setEditTarget('none')
     window.location.reload()
   }
 
@@ -48,7 +66,7 @@ export default function OrderSummaryCard({
     window.location.reload()
   }
 
-  if (isEditing) {
+  if (editTarget === 'today' || editTarget === 'subscription') {
     return (
       <div className="bg-white rounded-2xl p-4 space-y-3.5">
         <div className="flex items-center gap-3">
@@ -57,7 +75,12 @@ export default function OrderSummaryCard({
               <img src={order.products.photo_url} alt="" className="w-full h-full object-cover" />
             ) : '🥛'}
           </div>
-          <p className="font-medium text-[15px] text-[#2C2C2A]">{order.products?.name}</p>
+          <div>
+            <p className="font-medium text-[15px] text-[#2C2C2A]">{order.products?.name}</p>
+            <p className="text-[12px] text-[#8a8578]">
+              {editTarget === 'subscription' ? 'Changing your daily subscription' : 'Changing just tomorrow'}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -85,13 +108,13 @@ export default function OrderSummaryCard({
 
         <div className="flex gap-2.5">
           <button
-            onClick={() => setIsEditing(false)}
+            onClick={() => setEditTarget('none')}
             className="flex-1 bg-[#F5F2EA] text-[#2C2C2A] py-3 rounded-xl font-medium text-[14px]"
           >
             Discard
           </button>
           <button
-            onClick={handleSave}
+            onClick={editTarget === 'subscription' ? handleSaveSubscription : handleSaveToday}
             disabled={loading}
             className="flex-1 bg-[#1E4D8C] text-white py-3 rounded-xl font-medium text-[14px] disabled:opacity-50"
           >
@@ -108,7 +131,9 @@ export default function OrderSummaryCard({
         <p className="font-medium text-[15px] text-[#2C2C2A]">
           Skip {order.products?.name} ({order.quantity}) for {isPastCutoff ? 'tomorrow' : 'today'}?
         </p>
-        <p className="text-[13px] text-[#8a8578]">Can't undo this after the cutoff time.</p>
+        <p className="text-[13px] text-[#8a8578]">
+          {isSubscribed ? "Your subscription continues — this only skips this one day." : "Can't undo this after the cutoff time."}
+        </p>
         <div className="flex gap-2.5 pt-1">
           <button
             onClick={() => setShowCancelConfirm(false)}
@@ -132,34 +157,38 @@ export default function OrderSummaryCard({
     <div className="bg-white rounded-2xl px-4 py-3.5">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center text-lg overflow-hidden flex-shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center text-lg overflow-hidden flex-shrink-0 relative">
             {order.products?.photo_url ? (
               <img src={order.products.photo_url} alt="" className="w-full h-full object-cover" />
             ) : '🥛'}
+            {isSubscribed && (
+              <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#1E4D8C] border-2 border-white flex items-center justify-center text-[8px]">
+                🔁
+              </span>
+            )}
           </div>
           <div>
             <p className="font-medium text-[14px] text-[#2C2C2A]">{order.products?.name} · {order.quantity}</p>
             <p className="text-[12px] text-[#8a8578] mt-0.5">
-  {order.products?.unit} · ₹{((order.products?.price || 0) * order.quantity).toFixed(0)}{order.notes ? ` · ${order.notes}` : ''}
-</p>
+              {order.products?.unit} · ₹{((order.products?.price || 0) * order.quantity).toFixed(0)}
+              {isSubscribed ? ' · Daily' : ''}
+              {order.notes ? ` · ${order.notes}` : ''}
+            </p>
           </div>
         </div>
-        <div
-          className="flex items-center gap-1.5 flex-shrink-0 px-2.5 py-1 rounded-full"
-          style={{ background: status.bg }}
-        >
+        <div className="flex items-center gap-1.5 flex-shrink-0 px-2.5 py-1 rounded-full" style={{ background: status.bg }}>
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
           <span className="text-[11px] font-medium" style={{ color: status.text }}>{status.label}</span>
         </div>
       </div>
 
-      {canEdit && (
+      {canEdit && !isSubscribed && (
         <div className="flex gap-2 mt-3 pt-3 border-t border-[#F0EDE5]">
           <button
-            onClick={() => setIsEditing(true)}
+            onClick={() => { setEditTarget('today') }}
             className="flex-1 bg-[#F5F2EA] text-[#1E4D8C] py-2.5 rounded-xl font-medium text-[13px] active:scale-95 transition-transform"
           >
-            Change amount
+            Change quantity
           </button>
           <button
             onClick={() => setShowCancelConfirm(true)}
@@ -170,9 +199,38 @@ export default function OrderSummaryCard({
         </div>
       )}
 
+      {canEdit && isSubscribed && (
+        <div className="flex gap-2 mt-3 pt-3 border-t border-[#F0EDE5]">
+          <button
+            onClick={() => setEditTarget('today')}
+            className="flex-1 bg-[#F5F2EA] text-[#1E4D8C] py-2.5 rounded-xl font-medium text-[12px] active:scale-95 transition-transform"
+          >
+            Just for tomorrow
+          </button>
+          <button
+            onClick={() => setEditTarget('subscription')}
+            className="flex-1 bg-[#F5F2EA] text-[#1E4D8C] py-2.5 rounded-xl font-medium text-[12px] active:scale-95 transition-transform"
+          >
+            Edit subscription
+          </button>
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            className="flex-shrink-0 bg-[#F5F2EA] text-[#B0463C] py-2.5 px-3 rounded-xl font-medium text-[12px] active:scale-95 transition-transform"
+          >
+            Skip
+          </button>
+        </div>
+      )}
+
       {isDelivered && (
         <p className="text-[12px] text-[#8a8578] mt-3 pt-3 border-t border-[#F0EDE5]">
           Already delivered — can't be changed
+        </p>
+      )}
+
+      {!isDelivered && isPastCutoff && (
+        <p className="text-[12px] text-[#8a8578] mt-3 pt-3 border-t border-[#F0EDE5]">
+          Cutoff time has passed — your order is locked in
         </p>
       )}
     </div>
