@@ -70,6 +70,7 @@ export default async function CustomerPage() {
     .from('subscriptions')
     .select('*, products(name, unit, photo_url)')
     .eq('user_id', user.id)
+    .eq('is_active', true)
     .order('created_at', { ascending: true })
 
   const orderedProductIds = new Set((todayOrders || []).map(o => o.product_id))

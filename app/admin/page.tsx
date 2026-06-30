@@ -46,6 +46,7 @@ export default async function AdminPage() {
   const { data: subscriptions } = await supabase
     .from('subscriptions')
     .select('*, users(name, flat_number, building), products(name, unit)')
+    .eq('is_active', true)
     .order('created_at', { ascending: false })
 
   const pendingCount = orders?.filter(o => o.status === 'pending').length || 0

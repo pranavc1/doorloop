@@ -17,12 +17,17 @@ export default function SubscriptionsManager({ subscriptions }: { subscriptions:
   const [loading, setLoading] = useState<string | null>(null)
 
   async function cancelSubscription(id: string) {
-    setLoading(id)
-    const supabase = createClient()
-    await supabase.from('subscriptions').delete().eq('id', id)
+  setLoading(id)
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('subscriptions')
+    .update({ is_active: false })
+    .eq('id', id)
+  if (!error) {
     setList(prev => prev.filter(s => s.id !== id))
-    setLoading(null)
   }
+  setLoading(null)
+}
 
   if (list.length === 0) {
     return (

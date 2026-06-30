@@ -9,6 +9,7 @@ type Subscription = {
   quantity: number
   notes: string | null
   is_paused: boolean
+  is_active: boolean
   paused_from: string | null
   paused_to: string | null
   created_at: string
@@ -38,12 +39,18 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
   const [pauseTo, setPauseTo] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const isCurrentlyPaused =
-    sub.is_paused &&
-    sub.paused_from &&
-    sub.paused_to &&
-    new Date() >= new Date(sub.paused_from) &&
-    new Date() <= new Date(sub.paused_to)
+const today = new Date().toISOString().split('T')[0]
+const isCurrentlyPaused =
+  sub.is_paused &&
+  sub.paused_from &&
+  sub.paused_to &&
+  today >= sub.paused_from &&
+  today <= sub.paused_to
+
+const isPausingSoon =
+  sub.is_paused &&
+  sub.paused_from &&
+  today < sub.paused_from
 
   async function handlePause() {
     if (!pauseFrom || !pauseTo) return
@@ -69,12 +76,19 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
   }
 
   async function handleCancel() {
-    setLoading(true)
-    const supabase = createClient()
-    await supabase.from('subscriptions').delete().eq('id', sub.id)
-    setLoading(false)
-    window.location.reload()
+  setLoading(true)
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('subscriptions')
+    .update({ is_active: false })
+    .eq('id', sub.id)
+  setLoading(false)
+  if (error) {
+    alert('Could not cancel: ' + error.message)
+    return
   }
+  window.location.reload()
+}
 
   if (showCancelConfirm) {
     return (
@@ -158,23 +172,25 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-medium text-[#2C2C2A]">{sub.products?.name} · {sub.quantity} daily</p>
           <p className="text-[12px] text-[#8a8578] mt-0.5">
-            {isCurrentlyPaused
-              ? `Paused until ${new Date(sub.paused_to!).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`
-              : 'Active'}
-          </p>
+  {isCurrentlyPaused
+    ? `Paused until ${new Date(sub.paused_to!).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`
+    : isPausingSoon
+    ? `Pausing from ${new Date(sub.paused_from!).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`
+    : 'Active'}
+</p>
         </div>
       </div>
 
       <div className="flex gap-2 mt-3 pt-3 border-t border-[#F0EDE5]">
-        {isCurrentlyPaused ? (
-          <button
-            onClick={handleResume}
-            disabled={loading}
-            className="flex-1 bg-[#E1F5EE] text-[#0F6E56] py-2.5 rounded-xl font-medium text-[12px] active:scale-95 transition-transform disabled:opacity-50"
-          >
-            {loading ? '...' : 'Resume now'}
-          </button>
-        ) : (
+        {(isCurrentlyPaused || isPausingSoon) ? (
+  <button
+    onClick={handleResume}
+    disabled={loading}
+    className="flex-1 bg-[#E1F5EE] text-[#0F6E56] py-2.5 rounded-xl font-medium text-[12px] active:scale-95 transition-transform disabled:opacity-50"
+  >
+    {loading ? '...' : 'Resume now'}
+  </button>
+) : (
           <button
             onClick={() => setShowPause(true)}
             className="flex-1 bg-[#F5F2EA] text-[#1E4D8C] py-2.5 rounded-xl font-medium text-[12px] active:scale-95 transition-transform"
