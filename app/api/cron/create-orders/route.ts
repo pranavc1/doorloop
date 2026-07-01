@@ -1,14 +1,17 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
-  // Verify this is called by Vercel Cron, not a random person
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = await createClient()
+  // Use service role to bypass RLS — safe because this is our own server code
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   // Tomorrow's date in IST
   const now = new Date()
@@ -17,7 +20,6 @@ export async function GET(request: Request) {
   const tomorrow = new Date(istNow.getTime() + 24 * 60 * 60 * 1000)
   const tomorrowDate = tomorrow.toISOString().split('T')[0]
 
-  // Fetch all active, non-paused subscriptions
   const { data: subscriptions, error: fetchError } = await supabase
     .from('subscriptions')
     .select('*')
@@ -36,7 +38,6 @@ export async function GET(request: Request) {
   const errors: string[] = []
 
   for (const sub of subscriptions) {
-    // Check if subscription is paused for tomorrow
     if (sub.is_paused && sub.paused_from && sub.paused_to) {
       if (tomorrowDate >= sub.paused_from && tomorrowDate <= sub.paused_to) {
         skipped++
@@ -44,7 +45,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // Check if order for tomorrow already exists for this product
     const { data: existing } = await supabase
       .from('orders')
       .select('id')
@@ -59,7 +59,6 @@ export async function GET(request: Request) {
       continue
     }
 
-    // Create tomorrow's order
     const { error: insertError } = await supabase.from('orders').insert({
       user_id: sub.user_id,
       product_id: sub.product_id,
@@ -77,10 +76,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({
-    date: tomorrowDate,
-    created,
-    skipped,
-    errors,
-  })
+  return NextResponse.json({ date: tomorrowDate, created, skipped, errors })
 }
